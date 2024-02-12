@@ -1,0 +1,25 @@
+header #thaps-search-button,
+header #thaps-search-button:hover {
+    background: green;
+}
+
+.toggle-cat-wrap,
+#search-button,
+.thunk-icon .cart-icon,
+.single_add_to_cart_button.button.alt,
+.woocommerce #respond input#submit.alt,
+.woocommerce a.button.alt,
+.woocommerce button.button.alt,
+.woocommerce input.button.alt,
+.woocommerce #respond input#submit,
+.woocommerce button.button,
+.woocommerce input.button,
+.thunk-woo-product-list .thunk-quickview a,
+.cat-list a:after,
+.tagcloud a:hover,
+.thunk-tags-wrapper a:hover,
+.btn-main-header,
+.woocommerce div.product form.cart .button,
+.thunk-icon .cart-icon .taiowc-cart-item {
+    background: green;
+}
