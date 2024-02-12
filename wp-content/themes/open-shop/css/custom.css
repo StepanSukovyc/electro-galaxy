@@ -23,3 +23,11 @@ header #thaps-search-button:hover {
 .thunk-icon .cart-icon .taiowc-cart-item {
     background: green;
 }
+
+.menu-category-list span.arrow {
+    position: absolute;
+    right: 13px;
+    width: 0px;
+    text-align: center;
+    background: #eaeaea;
+}
