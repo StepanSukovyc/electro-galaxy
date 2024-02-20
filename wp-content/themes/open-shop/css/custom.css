@@ -32,23 +32,25 @@ header #thaps-search-button:hover {
     background: #eaeaea;
 }
 
-<div class="header-support-wrap">
-              <div class="header-support-icon">
-                <i class="fa fa-phone" aria-hidden="true"></i>
-              </div>
-              <div class="header-support-content">
-                <span class="sprt-tel"><b>Volejte</b> <a href="tel:+420608133574">+420608133574</a></span>
-                                <span class="sprt-eml">Email : <a href="mailto:nasamoda@email.cz">nasamoda@email.cz</a></span>
-              </div>
-          </div>
-.header-support-wrap {
-<div class="header-support-wrap">
-              <div class="header-support-icon">
-                <i class="fa fa-phone" aria-hidden="true"></i>
-              </div>
-              <div class="header-support-content">
-                <span class="sprt-tel"><b>Volejte</b> <a href="tel:+420608133574">+420608133574</a></span>
-                                <span class="sprt-eml">Email : <a href="mailto:electrogalaxy5s@gmail.com">electrogalaxy5s@gmail.com</a></span>
-              </div>
-          </div>
+.thunk-grid-view .thunk-product {
+  border: 1px solid transparent;
+  background: #fff;
+  min-height: 330px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.thunk-grid-view .thunk-product .thunk-product-image {
+  display: block;
+  position: relative;
+  overflow: hidden;
+  margin: 5px;
+  border-radius: 4px 4px 0 0;
+}
+
+.thunk-grid-view .thunk-product .woocommerce ul.products li.product a img,
+.thunk-grid-view .attachment-woocommerce_thumbnail.size-woocommerce_thumbnail {
+  height: 200px !important;
+  object-fit: contain;
 }
