@@ -31,3 +31,24 @@ header #thaps-search-button:hover {
     text-align: center;
     background: #eaeaea;
 }
+
+<div class="header-support-wrap">
+              <div class="header-support-icon">
+                <i class="fa fa-phone" aria-hidden="true"></i>
+              </div>
+              <div class="header-support-content">
+                <span class="sprt-tel"><b>Volejte</b> <a href="tel:+420608133574">+420608133574</a></span>
+                                <span class="sprt-eml">Email : <a href="mailto:nasamoda@email.cz">nasamoda@email.cz</a></span>
+              </div>
+          </div>
+.header-support-wrap {
+<div class="header-support-wrap">
+              <div class="header-support-icon">
+                <i class="fa fa-phone" aria-hidden="true"></i>
+              </div>
+              <div class="header-support-content">
+                <span class="sprt-tel"><b>Volejte</b> <a href="tel:+420608133574">+420608133574</a></span>
+                                <span class="sprt-eml">Email : <a href="mailto:electrogalaxy5s@gmail.com">electrogalaxy5s@gmail.com</a></span>
+              </div>
+          </div>
+}
