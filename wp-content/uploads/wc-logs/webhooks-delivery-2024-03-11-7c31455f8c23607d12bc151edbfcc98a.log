@@ -1,0 +1,128 @@
+2024-03-11T08:26:41+00:00 INFO Array
+(
+    [Webhook Delivery] => Array
+        (
+            [Delivery ID] => 252102dc3bcd1c18f5ce9baa83a6a14c
+            [Date] => 11. 3. 2024 @ 8:26
+            [URL] => https://connect.pabbly.com/workflow/sendwebhookdata/IjU3NjUwNTZiMDYzNzA0MzQ1MjZlNTUzNzUxMzQi_pc
+            [Duration] => 1.00723
+            [Request] => Array
+                (
+                    [Method] => POST
+                    [Headers] => Array
+                        (
+                            [User-Agent] => WooCommerce/8.6.1 Hookshot (WordPress/6.4.3)
+                            [Content-Type] => application/json
+                            [X-WC-Webhook-Source] => http://electro-galaxy.badcrabs.com/
+                            [X-WC-Webhook-Topic] => order.created
+                            [X-WC-Webhook-Resource] => order
+                            [X-WC-Webhook-Event] => created
+                            [X-WC-Webhook-Signature] => 3daKi4chGGPSMxaN1CQIaYaMnMaxbnGq3MW/L3bter0=
+                            [X-WC-Webhook-ID] => 2
+                            [X-WC-Webhook-Delivery-ID] => 252102dc3bcd1c18f5ce9baa83a6a14c
+                        )
+
+                )
+
+            [Body] => Webhook body is not logged unless WP_DEBUG mode is turned on. This is to avoid the storing of personal data in the logs.
+            [Response] => Array
+                (
+                    [Code] => 200
+                    [Message] => OK
+                    [Headers] => WpOrg\Requests\Utility\CaseInsensitiveDictionary Object
+                        (
+                            [data:protected] => Array
+                                (
+                                    [date] => Mon, 11 Mar 2024 08:26:41 GMT
+                                    [content-type] => text/html; charset=UTF-8
+                                    [access-control-allow-origin] => *
+                                    [access-control-allow-methods] => GET, POST, PUT, DELETE, OPTIONS
+                                    [access-control-allow-headers] => Content-Type, Content-Length, Accept-Encoding, X-Requested-With
+                                    [set-cookie] => ci_connect_pabbly_sesion=ge5nvinhkg6jvdm1ru4uvev4nbif0mc8; expires=Mon, 11-Mar-2024 10:26:41 GMT; Max-Age=7200; path=/; HttpOnly; SameSite=Lax
+                                    [expires] => Thu, 19 Nov 1981 08:52:00 GMT
+                                    [cache-control] => no-store, no-cache, must-revalidate
+                                    [pragma] => no-cache
+                                    [strict-transport-security] => max-age=31536000
+                                    [x-frame-options] => SAMEORIGIN
+                                    [x-content-type-options] => nosniff
+                                    [x-xss-protection] => 1; mode=block
+                                    [cf-cache-status] => DYNAMIC
+                                    [report-to] => {"endpoints":[{"url":"https:\/\/a.nel.cloudflare.com\/report\/v3?s=whMmmohifgPPoK04DpTXMTe700jZrtD5P00vAMQY7P8%2B9bf8FQXoASFV7xQQMjhxfkPc1FvKoC1SFlZUo4fzfUqobqFnhN1qe2Ry8WM%2BPwnPGu8OfWGC8c4OJdHpRUTDFcdDGw%3D%3D"}],"group":"cf-nel","max_age":604800}
+                                    [nel] => {"success_fraction":0,"report_to":"cf-nel","max_age":604800}
+                                    [server] => cloudflare
+                                    [cf-ray] => 862a293838fdb354-PRG
+                                    [content-encoding] => gzip
+                                )
+
+                        )
+
+                    [Body] => Webhook body is not logged unless WP_DEBUG mode is turned on. This is to avoid the storing of personal data in the logs.
+                )
+
+        )
+
+)
+2024-03-11T08:29:37+00:00 INFO Array
+(
+    [Webhook Delivery] => Array
+        (
+            [Delivery ID] => 656ce133e35abc65d8b455ef38ccdc91
+            [Date] => 11. 3. 2024 @ 8:29
+            [URL] => https://connect.pabbly.com/workflow/sendwebhookdata/IjU3NjUwNTZiMDYzNzA0MzQ1MjZlNTUzNzUxMzQi_pc
+            [Duration] => 1.17284
+            [Request] => Array
+                (
+                    [Method] => POST
+                    [Headers] => Array
+                        (
+                            [User-Agent] => WooCommerce/8.6.1 Hookshot (WordPress/6.4.3)
+                            [Content-Type] => application/json
+                            [X-WC-Webhook-Source] => http://electro-galaxy.badcrabs.com/
+                            [X-WC-Webhook-Topic] => order.created
+                            [X-WC-Webhook-Resource] => order
+                            [X-WC-Webhook-Event] => created
+                            [X-WC-Webhook-Signature] => sBx5uwFi3PoTqjdLJn+A/3Wp5+T7Z7s7iTrdAAkhIyM=
+                            [X-WC-Webhook-ID] => 2
+                            [X-WC-Webhook-Delivery-ID] => 656ce133e35abc65d8b455ef38ccdc91
+                        )
+
+                )
+
+            [Body] => Webhook body is not logged unless WP_DEBUG mode is turned on. This is to avoid the storing of personal data in the logs.
+            [Response] => Array
+                (
+                    [Code] => 200
+                    [Message] => OK
+                    [Headers] => WpOrg\Requests\Utility\CaseInsensitiveDictionary Object
+                        (
+                            [data:protected] => Array
+                                (
+                                    [date] => Mon, 11 Mar 2024 08:29:37 GMT
+                                    [content-type] => text/html; charset=UTF-8
+                                    [access-control-allow-origin] => *
+                                    [access-control-allow-methods] => GET, POST, PUT, DELETE, OPTIONS
+                                    [access-control-allow-headers] => Content-Type, Content-Length, Accept-Encoding, X-Requested-With
+                                    [set-cookie] => ci_connect_pabbly_sesion=nmntvkt3fauc33054tea6vj63g9m5oem; expires=Mon, 11-Mar-2024 10:29:36 GMT; Max-Age=7200; path=/; HttpOnly; SameSite=Lax
+                                    [expires] => Thu, 19 Nov 1981 08:52:00 GMT
+                                    [cache-control] => no-store, no-cache, must-revalidate
+                                    [pragma] => no-cache
+                                    [strict-transport-security] => max-age=31536000
+                                    [x-frame-options] => SAMEORIGIN
+                                    [x-content-type-options] => nosniff
+                                    [x-xss-protection] => 1; mode=block
+                                    [cf-cache-status] => DYNAMIC
+                                    [report-to] => {"endpoints":[{"url":"https:\/\/a.nel.cloudflare.com\/report\/v3?s=i68RUHxffC48LBig5gDwE82CLIpitt7W2TsCvi%2Ba1HLrP8dkse2eTQ58Hyme%2FUYQdTM0BZmOFP6%2F5gvQVKz%2F%2FhoODM0e13G1PP8Q60Pm9l220n0mtQ%2BoXoKBYBbzKiHUTK0mmQ%3D%3D"}],"group":"cf-nel","max_age":604800}
+                                    [nel] => {"success_fraction":0,"report_to":"cf-nel","max_age":604800}
+                                    [server] => cloudflare
+                                    [cf-ray] => 862a2d7efbcdb354-PRG
+                                    [content-encoding] => gzip
+                                )
+
+                        )
+
+                    [Body] => Webhook body is not logged unless WP_DEBUG mode is turned on. This is to avoid the storing of personal data in the logs.
+                )
+
+        )
+
+)
