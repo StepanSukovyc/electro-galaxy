@@ -89,14 +89,7 @@ class SavePaymentMethodsModule implements ModuleInterface {
 				$logger = $c->get( 'woocommerce.logger.woocommerce' );
 				assert( $logger instanceof LoggerInterface );
 
-				$localized_script_data = $this->add_id_token_to_script_data( $api, $logger, $localized_script_data );
-
-				$localized_script_data['ajax']['capture_card_payment'] = array(
-					'endpoint' => \WC_AJAX::get_endpoint( CaptureCardPayment::ENDPOINT ),
-					'nonce'    => wp_create_nonce( CaptureCardPayment::nonce() ),
-				);
-
-				return $localized_script_data;
+				return $this->add_id_token_to_script_data( $api, $logger, $localized_script_data );
 			}
 		);
 
@@ -148,6 +141,21 @@ class SavePaymentMethodsModule implements ModuleInterface {
 									'vault' => array(
 										'store_in_vault' => 'ON_SUCCESS',
 										'usage_type'     => 'MERCHANT',
+										'permit_multiple_payment_tokens' => true,
+									),
+								),
+							),
+						);
+					} elseif ( $funding_source && $funding_source === 'apple_pay' ) {
+						$data['payment_source'] = array(
+							'apple_pay' => array(
+								'stored_credential' => array(
+									'payment_initiator' => 'CUSTOMER',
+									'payment_type'      => 'RECURRING',
+								),
+								'attributes'        => array(
+									'vault' => array(
+										'store_in_vault' => 'ON_SUCCESS',
 									),
 								),
 							),
@@ -159,6 +167,7 @@ class SavePaymentMethodsModule implements ModuleInterface {
 									'vault' => array(
 										'store_in_vault' => 'ON_SUCCESS',
 										'usage_type'     => 'MERCHANT',
+										'permit_multiple_payment_tokens' => true,
 									),
 								),
 							),
@@ -207,11 +216,29 @@ class SavePaymentMethodsModule implements ModuleInterface {
 					}
 
 					if ( $wc_order->get_payment_method() === PayPalGateway::ID ) {
-						$wc_payment_tokens->create_payment_token_paypal(
-							$wc_order->get_customer_id(),
-							$token_id,
-							$payment_source->properties()->email_address ?? ''
-						);
+						switch ( $payment_source->name() ) {
+							case 'venmo':
+								$wc_payment_tokens->create_payment_token_venmo(
+									$wc_order->get_customer_id(),
+									$token_id,
+									$payment_source->properties()->email_address ?? ''
+								);
+								break;
+							case 'apple_pay':
+								$wc_payment_tokens->create_payment_token_applepay(
+									$wc_order->get_customer_id(),
+									$token_id
+								);
+								break;
+							case 'paypal':
+							default:
+								$wc_payment_tokens->create_payment_token_paypal(
+									$wc_order->get_customer_id(),
+									$token_id,
+									$payment_source->properties()->email_address ?? ''
+								);
+								break;
+						}
 					}
 				}
 			},
@@ -365,16 +392,6 @@ class SavePaymentMethodsModule implements ModuleInterface {
 				}
 
 				return $supports;
-			}
-		);
-
-		add_action(
-			'wc_ajax_' . CaptureCardPayment::ENDPOINT,
-			static function () use ( $c ) {
-				$endpoint = $c->get( 'save-payment-methods.endpoint.capture-card-payment' );
-				assert( $endpoint instanceof CaptureCardPayment );
-
-				$endpoint->handle_request();
 			}
 		);
 

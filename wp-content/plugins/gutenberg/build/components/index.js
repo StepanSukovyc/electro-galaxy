@@ -206,603 +206,6 @@ module.exports = deepmerge_1;
 
 /***/ }),
 
-/***/ 1345:
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-var util = __webpack_require__(5022);
-
-function scrollIntoView(elem, container, config) {
-  config = config || {};
-  // document 归一化到 window
-  if (container.nodeType === 9) {
-    container = util.getWindow(container);
-  }
-
-  var allowHorizontalScroll = config.allowHorizontalScroll;
-  var onlyScrollIfNeeded = config.onlyScrollIfNeeded;
-  var alignWithTop = config.alignWithTop;
-  var alignWithLeft = config.alignWithLeft;
-  var offsetTop = config.offsetTop || 0;
-  var offsetLeft = config.offsetLeft || 0;
-  var offsetBottom = config.offsetBottom || 0;
-  var offsetRight = config.offsetRight || 0;
-
-  allowHorizontalScroll = allowHorizontalScroll === undefined ? true : allowHorizontalScroll;
-
-  var isWin = util.isWindow(container);
-  var isFramed = !!(isWin && container.frameElement);
-  var elemOffset = util.offset(elem);
-  var eh = util.outerHeight(elem);
-  var ew = util.outerWidth(elem);
-  var containerOffset = undefined;
-  var ch = undefined;
-  var cw = undefined;
-  var containerScroll = undefined;
-  var diffTop = undefined;
-  var diffBottom = undefined;
-  var win = undefined;
-  var winScroll = undefined;
-  var ww = undefined;
-  var wh = undefined;
-
-  if (isFramed) {
-    container = container.document.scrollingElement || container.document.body;
-  }
-
-  if (isWin || isFramed) {
-    win = container;
-    wh = util.height(win);
-    ww = util.width(win);
-    winScroll = {
-      left: util.scrollLeft(win),
-      top: util.scrollTop(win)
-    };
-    // elem 相对 container 可视视窗的距离
-    diffTop = {
-      left: elemOffset.left - winScroll.left - offsetLeft,
-      top: elemOffset.top - winScroll.top - offsetTop
-    };
-    diffBottom = {
-      left: elemOffset.left + ew - (winScroll.left + ww) + offsetRight,
-      top: elemOffset.top + eh - (winScroll.top + wh) + offsetBottom
-    };
-    containerScroll = winScroll;
-  } else {
-    containerOffset = util.offset(container);
-    ch = container.clientHeight;
-    cw = container.clientWidth;
-    containerScroll = {
-      left: container.scrollLeft,
-      top: container.scrollTop
-    };
-    // elem 相对 container 可视视窗的距离
-    // 注意边框, offset 是边框到根节点
-    diffTop = {
-      left: elemOffset.left - (containerOffset.left + (parseFloat(util.css(container, 'borderLeftWidth')) || 0)) - offsetLeft,
-      top: elemOffset.top - (containerOffset.top + (parseFloat(util.css(container, 'borderTopWidth')) || 0)) - offsetTop
-    };
-    diffBottom = {
-      left: elemOffset.left + ew - (containerOffset.left + cw + (parseFloat(util.css(container, 'borderRightWidth')) || 0)) + offsetRight,
-      top: elemOffset.top + eh - (containerOffset.top + ch + (parseFloat(util.css(container, 'borderBottomWidth')) || 0)) + offsetBottom
-    };
-  }
-
-  if (diffTop.top < 0 || diffBottom.top > 0) {
-    // 强制向上
-    if (alignWithTop === true) {
-      util.scrollTop(container, containerScroll.top + diffTop.top);
-    } else if (alignWithTop === false) {
-      util.scrollTop(container, containerScroll.top + diffBottom.top);
-    } else {
-      // 自动调整
-      if (diffTop.top < 0) {
-        util.scrollTop(container, containerScroll.top + diffTop.top);
-      } else {
-        util.scrollTop(container, containerScroll.top + diffBottom.top);
-      }
-    }
-  } else {
-    if (!onlyScrollIfNeeded) {
-      alignWithTop = alignWithTop === undefined ? true : !!alignWithTop;
-      if (alignWithTop) {
-        util.scrollTop(container, containerScroll.top + diffTop.top);
-      } else {
-        util.scrollTop(container, containerScroll.top + diffBottom.top);
-      }
-    }
-  }
-
-  if (allowHorizontalScroll) {
-    if (diffTop.left < 0 || diffBottom.left > 0) {
-      // 强制向上
-      if (alignWithLeft === true) {
-        util.scrollLeft(container, containerScroll.left + diffTop.left);
-      } else if (alignWithLeft === false) {
-        util.scrollLeft(container, containerScroll.left + diffBottom.left);
-      } else {
-        // 自动调整
-        if (diffTop.left < 0) {
-          util.scrollLeft(container, containerScroll.left + diffTop.left);
-        } else {
-          util.scrollLeft(container, containerScroll.left + diffBottom.left);
-        }
-      }
-    } else {
-      if (!onlyScrollIfNeeded) {
-        alignWithLeft = alignWithLeft === undefined ? true : !!alignWithLeft;
-        if (alignWithLeft) {
-          util.scrollLeft(container, containerScroll.left + diffTop.left);
-        } else {
-          util.scrollLeft(container, containerScroll.left + diffBottom.left);
-        }
-      }
-    }
-  }
-}
-
-module.exports = scrollIntoView;
-
-/***/ }),
-
-/***/ 5425:
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-module.exports = __webpack_require__(1345);
-
-/***/ }),
-
-/***/ 5022:
-/***/ ((module) => {
-
-"use strict";
-
-
-var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
-
-var RE_NUM = /[\-+]?(?:\d*\.|)\d+(?:[eE][\-+]?\d+|)/.source;
-
-function getClientPosition(elem) {
-  var box = undefined;
-  var x = undefined;
-  var y = undefined;
-  var doc = elem.ownerDocument;
-  var body = doc.body;
-  var docElem = doc && doc.documentElement;
-  // 根据 GBS 最新数据，A-Grade Browsers 都已支持 getBoundingClientRect 方法，不用再考虑传统的实现方式
-  box = elem.getBoundingClientRect();
-
-  // 注：jQuery 还考虑减去 docElem.clientLeft/clientTop
-  // 但测试发现，这样反而会导致当 html 和 body 有边距/边框样式时，获取的值不正确
-  // 此外，ie6 会忽略 html 的 margin 值，幸运地是没有谁会去设置 html 的 margin
-
-  x = box.left;
-  y = box.top;
-
-  // In IE, most of the time, 2 extra pixels are added to the top and left
-  // due to the implicit 2-pixel inset border.  In IE6/7 quirks mode and
-  // IE6 standards mode, this border can be overridden by setting the
-  // document element's border to zero -- thus, we cannot rely on the
-  // offset always being 2 pixels.
-
-  // In quirks mode, the offset can be determined by querying the body's
-  // clientLeft/clientTop, but in standards mode, it is found by querying
-  // the document element's clientLeft/clientTop.  Since we already called
-  // getClientBoundingRect we have already forced a reflow, so it is not
-  // too expensive just to query them all.
-
-  // ie 下应该减去窗口的边框吧，毕竟默认 absolute 都是相对窗口定位的
-  // 窗口边框标准是设 documentElement ,quirks 时设置 body
-  // 最好禁止在 body 和 html 上边框 ，但 ie < 9 html 默认有 2px ，减去
-  // 但是非 ie 不可能设置窗口边框，body html 也不是窗口 ,ie 可以通过 html,body 设置
-  // 标准 ie 下 docElem.clientTop 就是 border-top
-  // ie7 html 即窗口边框改变不了。永远为 2
-  // 但标准 firefox/chrome/ie9 下 docElem.clientTop 是窗口边框，即使设了 border-top 也为 0
-
-  x -= docElem.clientLeft || body.clientLeft || 0;
-  y -= docElem.clientTop || body.clientTop || 0;
-
-  return {
-    left: x,
-    top: y
-  };
-}
-
-function getScroll(w, top) {
-  var ret = w['page' + (top ? 'Y' : 'X') + 'Offset'];
-  var method = 'scroll' + (top ? 'Top' : 'Left');
-  if (typeof ret !== 'number') {
-    var d = w.document;
-    // ie6,7,8 standard mode
-    ret = d.documentElement[method];
-    if (typeof ret !== 'number') {
-      // quirks mode
-      ret = d.body[method];
-    }
-  }
-  return ret;
-}
-
-function getScrollLeft(w) {
-  return getScroll(w);
-}
-
-function getScrollTop(w) {
-  return getScroll(w, true);
-}
-
-function getOffset(el) {
-  var pos = getClientPosition(el);
-  var doc = el.ownerDocument;
-  var w = doc.defaultView || doc.parentWindow;
-  pos.left += getScrollLeft(w);
-  pos.top += getScrollTop(w);
-  return pos;
-}
-function _getComputedStyle(elem, name, computedStyle_) {
-  var val = '';
-  var d = elem.ownerDocument;
-  var computedStyle = computedStyle_ || d.defaultView.getComputedStyle(elem, null);
-
-  // https://github.com/kissyteam/kissy/issues/61
-  if (computedStyle) {
-    val = computedStyle.getPropertyValue(name) || computedStyle[name];
-  }
-
-  return val;
-}
-
-var _RE_NUM_NO_PX = new RegExp('^(' + RE_NUM + ')(?!px)[a-z%]+$', 'i');
-var RE_POS = /^(top|right|bottom|left)$/;
-var CURRENT_STYLE = 'currentStyle';
-var RUNTIME_STYLE = 'runtimeStyle';
-var LEFT = 'left';
-var PX = 'px';
-
-function _getComputedStyleIE(elem, name) {
-  // currentStyle maybe null
-  // http://msdn.microsoft.com/en-us/library/ms535231.aspx
-  var ret = elem[CURRENT_STYLE] && elem[CURRENT_STYLE][name];
-
-  // 当 width/height 设置为百分比时，通过 pixelLeft 方式转换的 width/height 值
-  // 一开始就处理了! CUSTOM_STYLE.height,CUSTOM_STYLE.width ,cssHook 解决@2011-08-19
-  // 在 ie 下不对，需要直接用 offset 方式
-  // borderWidth 等值也有问题，但考虑到 borderWidth 设为百分比的概率很小，这里就不考虑了
-
-  // From the awesome hack by Dean Edwards
-  // http://erik.eae.net/archives/2007/07/27/18.54.15/#comment-102291
-  // If we're not dealing with a regular pixel number
-  // but a number that has a weird ending, we need to convert it to pixels
-  // exclude left right for relativity
-  if (_RE_NUM_NO_PX.test(ret) && !RE_POS.test(name)) {
-    // Remember the original values
-    var style = elem.style;
-    var left = style[LEFT];
-    var rsLeft = elem[RUNTIME_STYLE][LEFT];
-
-    // prevent flashing of content
-    elem[RUNTIME_STYLE][LEFT] = elem[CURRENT_STYLE][LEFT];
-
-    // Put in the new values to get a computed value out
-    style[LEFT] = name === 'fontSize' ? '1em' : ret || 0;
-    ret = style.pixelLeft + PX;
-
-    // Revert the changed values
-    style[LEFT] = left;
-
-    elem[RUNTIME_STYLE][LEFT] = rsLeft;
-  }
-  return ret === '' ? 'auto' : ret;
-}
-
-var getComputedStyleX = undefined;
-if (typeof window !== 'undefined') {
-  getComputedStyleX = window.getComputedStyle ? _getComputedStyle : _getComputedStyleIE;
-}
-
-function each(arr, fn) {
-  for (var i = 0; i < arr.length; i++) {
-    fn(arr[i]);
-  }
-}
-
-function isBorderBoxFn(elem) {
-  return getComputedStyleX(elem, 'boxSizing') === 'border-box';
-}
-
-var BOX_MODELS = ['margin', 'border', 'padding'];
-var CONTENT_INDEX = -1;
-var PADDING_INDEX = 2;
-var BORDER_INDEX = 1;
-var MARGIN_INDEX = 0;
-
-function swap(elem, options, callback) {
-  var old = {};
-  var style = elem.style;
-  var name = undefined;
-
-  // Remember the old values, and insert the new ones
-  for (name in options) {
-    if (options.hasOwnProperty(name)) {
-      old[name] = style[name];
-      style[name] = options[name];
-    }
-  }
-
-  callback.call(elem);
-
-  // Revert the old values
-  for (name in options) {
-    if (options.hasOwnProperty(name)) {
-      style[name] = old[name];
-    }
-  }
-}
-
-function getPBMWidth(elem, props, which) {
-  var value = 0;
-  var prop = undefined;
-  var j = undefined;
-  var i = undefined;
-  for (j = 0; j < props.length; j++) {
-    prop = props[j];
-    if (prop) {
-      for (i = 0; i < which.length; i++) {
-        var cssProp = undefined;
-        if (prop === 'border') {
-          cssProp = prop + which[i] + 'Width';
-        } else {
-          cssProp = prop + which[i];
-        }
-        value += parseFloat(getComputedStyleX(elem, cssProp)) || 0;
-      }
-    }
-  }
-  return value;
-}
-
-/**
- * A crude way of determining if an object is a window
- * @member util
- */
-function isWindow(obj) {
-  // must use == for ie8
-  /* eslint eqeqeq:0 */
-  return obj != null && obj == obj.window;
-}
-
-var domUtils = {};
-
-each(['Width', 'Height'], function (name) {
-  domUtils['doc' + name] = function (refWin) {
-    var d = refWin.document;
-    return Math.max(
-    // firefox chrome documentElement.scrollHeight< body.scrollHeight
-    // ie standard mode : documentElement.scrollHeight> body.scrollHeight
-    d.documentElement['scroll' + name],
-    // quirks : documentElement.scrollHeight 最大等于可视窗口多一点？
-    d.body['scroll' + name], domUtils['viewport' + name](d));
-  };
-
-  domUtils['viewport' + name] = function (win) {
-    // pc browser includes scrollbar in window.innerWidth
-    var prop = 'client' + name;
-    var doc = win.document;
-    var body = doc.body;
-    var documentElement = doc.documentElement;
-    var documentElementProp = documentElement[prop];
-    // 标准模式取 documentElement
-    // backcompat 取 body
-    return doc.compatMode === 'CSS1Compat' && documentElementProp || body && body[prop] || documentElementProp;
-  };
-});
-
-/*
- 得到元素的大小信息
- @param elem
- @param name
- @param {String} [extra]  'padding' : (css width) + padding
- 'border' : (css width) + padding + border
- 'margin' : (css width) + padding + border + margin
- */
-function getWH(elem, name, extra) {
-  if (isWindow(elem)) {
-    return name === 'width' ? domUtils.viewportWidth(elem) : domUtils.viewportHeight(elem);
-  } else if (elem.nodeType === 9) {
-    return name === 'width' ? domUtils.docWidth(elem) : domUtils.docHeight(elem);
-  }
-  var which = name === 'width' ? ['Left', 'Right'] : ['Top', 'Bottom'];
-  var borderBoxValue = name === 'width' ? elem.offsetWidth : elem.offsetHeight;
-  var computedStyle = getComputedStyleX(elem);
-  var isBorderBox = isBorderBoxFn(elem, computedStyle);
-  var cssBoxValue = 0;
-  if (borderBoxValue == null || borderBoxValue <= 0) {
-    borderBoxValue = undefined;
-    // Fall back to computed then un computed css if necessary
-    cssBoxValue = getComputedStyleX(elem, name);
-    if (cssBoxValue == null || Number(cssBoxValue) < 0) {
-      cssBoxValue = elem.style[name] || 0;
-    }
-    // Normalize '', auto, and prepare for extra
-    cssBoxValue = parseFloat(cssBoxValue) || 0;
-  }
-  if (extra === undefined) {
-    extra = isBorderBox ? BORDER_INDEX : CONTENT_INDEX;
-  }
-  var borderBoxValueOrIsBorderBox = borderBoxValue !== undefined || isBorderBox;
-  var val = borderBoxValue || cssBoxValue;
-  if (extra === CONTENT_INDEX) {
-    if (borderBoxValueOrIsBorderBox) {
-      return val - getPBMWidth(elem, ['border', 'padding'], which, computedStyle);
-    }
-    return cssBoxValue;
-  }
-  if (borderBoxValueOrIsBorderBox) {
-    var padding = extra === PADDING_INDEX ? -getPBMWidth(elem, ['border'], which, computedStyle) : getPBMWidth(elem, ['margin'], which, computedStyle);
-    return val + (extra === BORDER_INDEX ? 0 : padding);
-  }
-  return cssBoxValue + getPBMWidth(elem, BOX_MODELS.slice(extra), which, computedStyle);
-}
-
-var cssShow = {
-  position: 'absolute',
-  visibility: 'hidden',
-  display: 'block'
-};
-
-// fix #119 : https://github.com/kissyteam/kissy/issues/119
-function getWHIgnoreDisplay(elem) {
-  var val = undefined;
-  var args = arguments;
-  // in case elem is window
-  // elem.offsetWidth === undefined
-  if (elem.offsetWidth !== 0) {
-    val = getWH.apply(undefined, args);
-  } else {
-    swap(elem, cssShow, function () {
-      val = getWH.apply(undefined, args);
-    });
-  }
-  return val;
-}
-
-function css(el, name, v) {
-  var value = v;
-  if ((typeof name === 'undefined' ? 'undefined' : _typeof(name)) === 'object') {
-    for (var i in name) {
-      if (name.hasOwnProperty(i)) {
-        css(el, i, name[i]);
-      }
-    }
-    return undefined;
-  }
-  if (typeof value !== 'undefined') {
-    if (typeof value === 'number') {
-      value += 'px';
-    }
-    el.style[name] = value;
-    return undefined;
-  }
-  return getComputedStyleX(el, name);
-}
-
-each(['width', 'height'], function (name) {
-  var first = name.charAt(0).toUpperCase() + name.slice(1);
-  domUtils['outer' + first] = function (el, includeMargin) {
-    return el && getWHIgnoreDisplay(el, name, includeMargin ? MARGIN_INDEX : BORDER_INDEX);
-  };
-  var which = name === 'width' ? ['Left', 'Right'] : ['Top', 'Bottom'];
-
-  domUtils[name] = function (elem, val) {
-    if (val !== undefined) {
-      if (elem) {
-        var computedStyle = getComputedStyleX(elem);
-        var isBorderBox = isBorderBoxFn(elem);
-        if (isBorderBox) {
-          val += getPBMWidth(elem, ['padding', 'border'], which, computedStyle);
-        }
-        return css(elem, name, val);
-      }
-      return undefined;
-    }
-    return elem && getWHIgnoreDisplay(elem, name, CONTENT_INDEX);
-  };
-});
-
-// 设置 elem 相对 elem.ownerDocument 的坐标
-function setOffset(elem, offset) {
-  // set position first, in-case top/left are set even on static elem
-  if (css(elem, 'position') === 'static') {
-    elem.style.position = 'relative';
-  }
-
-  var old = getOffset(elem);
-  var ret = {};
-  var current = undefined;
-  var key = undefined;
-
-  for (key in offset) {
-    if (offset.hasOwnProperty(key)) {
-      current = parseFloat(css(elem, key)) || 0;
-      ret[key] = current + offset[key] - old[key];
-    }
-  }
-  css(elem, ret);
-}
-
-module.exports = _extends({
-  getWindow: function getWindow(node) {
-    var doc = node.ownerDocument || node;
-    return doc.defaultView || doc.parentWindow;
-  },
-  offset: function offset(el, value) {
-    if (typeof value !== 'undefined') {
-      setOffset(el, value);
-    } else {
-      return getOffset(el);
-    }
-  },
-
-  isWindow: isWindow,
-  each: each,
-  css: css,
-  clone: function clone(obj) {
-    var ret = {};
-    for (var i in obj) {
-      if (obj.hasOwnProperty(i)) {
-        ret[i] = obj[i];
-      }
-    }
-    var overflow = obj.overflow;
-    if (overflow) {
-      for (var i in obj) {
-        if (obj.hasOwnProperty(i)) {
-          ret.overflow[i] = obj.overflow[i];
-        }
-      }
-    }
-    return ret;
-  },
-  scrollLeft: function scrollLeft(w, v) {
-    if (isWindow(w)) {
-      if (v === undefined) {
-        return getScrollLeft(w);
-      }
-      window.scrollTo(v, getScrollTop(w));
-    } else {
-      if (v === undefined) {
-        return w.scrollLeft;
-      }
-      w.scrollLeft = v;
-    }
-  },
-  scrollTop: function scrollTop(w, v) {
-    if (isWindow(w)) {
-      if (v === undefined) {
-        return getScrollTop(w);
-      }
-      window.scrollTo(getScrollLeft(w), v);
-    } else {
-      if (v === undefined) {
-        return w.scrollTop;
-      }
-      w.scrollTop = v;
-    }
-  },
-
-  viewportWidth: 0,
-  viewportHeight: 0
-}, domUtils);
-
-/***/ }),
-
 /***/ 9214:
 /***/ ((__unused_webpack_module, exports) => {
 
@@ -1830,6 +1233,7 @@ module.exports = function() {
   // Keep this list in sync with production version in `./factoryWithTypeCheckers.js`.
   var ReactPropTypes = {
     array: shim,
+    bigint: shim,
     bool: shim,
     func: shim,
     number: shim,
@@ -7871,11 +7275,6 @@ if (false) {}
 
 
 ;// CONCATENATED MODULE: ./node_modules/@floating-ui/utils/dist/floating-ui.utils.mjs
-/**
- * Custom positioning reference element.
- * @see https://floating-ui.com/docs/virtual-elements
- */
-
 const floating_ui_utils_sides = (/* unused pure expression or super */ null && (['top', 'right', 'bottom', 'left']));
 const alignments = (/* unused pure expression or super */ null && (['start', 'end']));
 const floating_ui_utils_placements = /*#__PURE__*/(/* unused pure expression or super */ null && (floating_ui_utils_sides.reduce((acc, side) => acc.concat(side, side + "-" + alignments[0], side + "-" + alignments[1]), [])));
@@ -8063,7 +7462,7 @@ function computeCoordsFromPlacement(_ref, placement, rtl) {
 
 /**
  * Computes the `x` and `y` coordinates that will place the floating element
- * next to a given reference element.
+ * next to a reference element when it is given a certain positioning strategy.
  *
  * This export does not have any `platform` interface logic. You will need to
  * write one for the platform you are using Floating UI with.
@@ -8141,6 +7540,7 @@ const computePosition = async (reference, floating, config) => {
         } = computeCoordsFromPlacement(rects, statefulPlacement, rtl));
       }
       i = -1;
+      continue;
     }
   }
   return {
@@ -8203,7 +7603,6 @@ async function detectOverflow(state, options) {
     y: 1
   };
   const elementClientRect = floating_ui_utils_rectToClientRect(platform.convertOffsetParentRelativeRectToViewportRelativeRect ? await platform.convertOffsetParentRelativeRectToViewportRelativeRect({
-    elements,
     rect,
     offsetParent,
     strategy
@@ -8231,8 +7630,7 @@ const arrow = options => ({
       placement,
       rects,
       platform,
-      elements,
-      middlewareData
+      elements
     } = state;
     // Since `element` is required, we don't Partial<> the type.
     const {
@@ -8280,20 +7678,16 @@ const arrow = options => ({
 
     // If the reference is small enough that the arrow's padding causes it to
     // to point to nothing for an aligned placement, adjust the offset of the
-    // floating element itself. To ensure `shift()` continues to take action,
-    // a single reset is performed when this is true.
-    const shouldAddOffset = !middlewareData.arrow && floating_ui_utils_getAlignment(placement) != null && center !== offset && rects.reference[length] / 2 - (center < min$1 ? minPadding : maxPadding) - arrowDimensions[length] / 2 < 0;
-    const alignmentOffset = shouldAddOffset ? center < min$1 ? center - min$1 : center - max : 0;
+    // floating element itself. This stops `shift()` from taking action, but can
+    // be worked around by calling it again after the `arrow()` if desired.
+    const shouldAddOffset = floating_ui_utils_getAlignment(placement) != null && center != offset && rects.reference[length] / 2 - (center < min$1 ? minPadding : maxPadding) - arrowDimensions[length] / 2 < 0;
+    const alignmentOffset = shouldAddOffset ? center < min$1 ? min$1 - center : max - center : 0;
     return {
-      [axis]: coords[axis] + alignmentOffset,
+      [axis]: coords[axis] - alignmentOffset,
       data: {
         [axis]: offset,
-        centerOffset: center - offset - alignmentOffset,
-        ...(shouldAddOffset && {
-          alignmentOffset
-        })
-      },
-      reset: shouldAddOffset
+        centerOffset: center - offset + alignmentOffset
+      }
     };
   }
 });
@@ -8415,7 +7809,7 @@ const flip = function (options) {
     name: 'flip',
     options,
     async fn(state) {
-      var _middlewareData$arrow, _middlewareData$flip;
+      var _middlewareData$flip;
       const {
         placement,
         middlewareData,
@@ -8433,14 +7827,6 @@ const flip = function (options) {
         flipAlignment = true,
         ...detectOverflowOptions
       } = floating_ui_utils_evaluate(options, state);
-
-      // If a reset by the arrow was caused due to an alignment offset being
-      // added, we should skip any logic now since `flip()` has already done its
-      // work.
-      // https://github.com/floating-ui/floating-ui/issues/2549#issuecomment-1719601643
-      if ((_middlewareData$arrow = middlewareData.arrow) != null && _middlewareData$arrow.alignmentOffset) {
-        return {};
-      }
       const side = floating_ui_utils_getSide(placement);
       const isBasePlacement = floating_ui_utils_getSide(initialPlacement) === initialPlacement;
       const rtl = await (platform.isRTL == null ? void 0 : platform.isRTL(elements.floating));
@@ -8718,7 +8104,6 @@ const inline = function (options) {
 
 // For type backwards-compatibility, the `OffsetOptions` type was also
 // Derivable.
-
 async function convertValueToCoords(state, options) {
   const {
     placement,
@@ -8732,6 +8117,8 @@ async function convertValueToCoords(state, options) {
   const mainAxisMulti = ['left', 'top'].includes(side) ? -1 : 1;
   const crossAxisMulti = rtl && isVertical ? -1 : 1;
   const rawValue = floating_ui_utils_evaluate(options, state);
+
+  // eslint-disable-next-line prefer-const
   let {
     mainAxis,
     crossAxis,
@@ -8773,27 +8160,15 @@ const offset = function (options) {
     name: 'offset',
     options,
     async fn(state) {
-      var _middlewareData$offse, _middlewareData$arrow;
       const {
         x,
-        y,
-        placement,
-        middlewareData
+        y
       } = state;
       const diffCoords = await convertValueToCoords(state, options);
-
-      // If the placement is the same and the arrow caused an alignment offset
-      // then we don't need to change the positioning coordinates.
-      if (placement === ((_middlewareData$offse = middlewareData.offset) == null ? void 0 : _middlewareData$offse.placement) && (_middlewareData$arrow = middlewareData.arrow) != null && _middlewareData$arrow.alignmentOffset) {
-        return {};
-      }
       return {
         x: x + diffCoords.x,
         y: y + diffCoords.y,
-        data: {
-          ...diffCoords,
-          placement
-        }
+        data: diffCoords
       };
     }
   };
@@ -9025,7 +8400,138 @@ const size = function (options) {
 
 
 
-;// CONCATENATED MODULE: ./node_modules/@floating-ui/utils/dist/floating-ui.utils.dom.mjs
+;// CONCATENATED MODULE: ./node_modules/@floating-ui/dom/node_modules/@floating-ui/utils/dist/floating-ui.utils.mjs
+/**
+ * Custom positioning reference element.
+ * @see https://floating-ui.com/docs/virtual-elements
+ */
+
+const dist_floating_ui_utils_sides = (/* unused pure expression or super */ null && (['top', 'right', 'bottom', 'left']));
+const floating_ui_utils_alignments = (/* unused pure expression or super */ null && (['start', 'end']));
+const dist_floating_ui_utils_placements = /*#__PURE__*/(/* unused pure expression or super */ null && (dist_floating_ui_utils_sides.reduce((acc, side) => acc.concat(side, side + "-" + floating_ui_utils_alignments[0], side + "-" + floating_ui_utils_alignments[1]), [])));
+const dist_floating_ui_utils_min = Math.min;
+const dist_floating_ui_utils_max = Math.max;
+const floating_ui_utils_round = Math.round;
+const floating_ui_utils_floor = Math.floor;
+const floating_ui_utils_createCoords = v => ({
+  x: v,
+  y: v
+});
+const floating_ui_utils_oppositeSideMap = {
+  left: 'right',
+  right: 'left',
+  bottom: 'top',
+  top: 'bottom'
+};
+const floating_ui_utils_oppositeAlignmentMap = {
+  start: 'end',
+  end: 'start'
+};
+function floating_ui_utils_clamp(start, value, end) {
+  return dist_floating_ui_utils_max(start, dist_floating_ui_utils_min(value, end));
+}
+function dist_floating_ui_utils_evaluate(value, param) {
+  return typeof value === 'function' ? value(param) : value;
+}
+function dist_floating_ui_utils_getSide(placement) {
+  return placement.split('-')[0];
+}
+function dist_floating_ui_utils_getAlignment(placement) {
+  return placement.split('-')[1];
+}
+function floating_ui_utils_getOppositeAxis(axis) {
+  return axis === 'x' ? 'y' : 'x';
+}
+function floating_ui_utils_getAxisLength(axis) {
+  return axis === 'y' ? 'height' : 'width';
+}
+function dist_floating_ui_utils_getSideAxis(placement) {
+  return ['top', 'bottom'].includes(dist_floating_ui_utils_getSide(placement)) ? 'y' : 'x';
+}
+function floating_ui_utils_getAlignmentAxis(placement) {
+  return floating_ui_utils_getOppositeAxis(dist_floating_ui_utils_getSideAxis(placement));
+}
+function dist_floating_ui_utils_getAlignmentSides(placement, rects, rtl) {
+  if (rtl === void 0) {
+    rtl = false;
+  }
+  const alignment = dist_floating_ui_utils_getAlignment(placement);
+  const alignmentAxis = floating_ui_utils_getAlignmentAxis(placement);
+  const length = floating_ui_utils_getAxisLength(alignmentAxis);
+  let mainAlignmentSide = alignmentAxis === 'x' ? alignment === (rtl ? 'end' : 'start') ? 'right' : 'left' : alignment === 'start' ? 'bottom' : 'top';
+  if (rects.reference[length] > rects.floating[length]) {
+    mainAlignmentSide = floating_ui_utils_getOppositePlacement(mainAlignmentSide);
+  }
+  return [mainAlignmentSide, floating_ui_utils_getOppositePlacement(mainAlignmentSide)];
+}
+function floating_ui_utils_getExpandedPlacements(placement) {
+  const oppositePlacement = floating_ui_utils_getOppositePlacement(placement);
+  return [dist_floating_ui_utils_getOppositeAlignmentPlacement(placement), oppositePlacement, dist_floating_ui_utils_getOppositeAlignmentPlacement(oppositePlacement)];
+}
+function dist_floating_ui_utils_getOppositeAlignmentPlacement(placement) {
+  return placement.replace(/start|end/g, alignment => floating_ui_utils_oppositeAlignmentMap[alignment]);
+}
+function floating_ui_utils_getSideList(side, isStart, rtl) {
+  const lr = ['left', 'right'];
+  const rl = ['right', 'left'];
+  const tb = ['top', 'bottom'];
+  const bt = ['bottom', 'top'];
+  switch (side) {
+    case 'top':
+    case 'bottom':
+      if (rtl) return isStart ? rl : lr;
+      return isStart ? lr : rl;
+    case 'left':
+    case 'right':
+      return isStart ? tb : bt;
+    default:
+      return [];
+  }
+}
+function floating_ui_utils_getOppositeAxisPlacements(placement, flipAlignment, direction, rtl) {
+  const alignment = dist_floating_ui_utils_getAlignment(placement);
+  let list = floating_ui_utils_getSideList(dist_floating_ui_utils_getSide(placement), direction === 'start', rtl);
+  if (alignment) {
+    list = list.map(side => side + "-" + alignment);
+    if (flipAlignment) {
+      list = list.concat(list.map(dist_floating_ui_utils_getOppositeAlignmentPlacement));
+    }
+  }
+  return list;
+}
+function floating_ui_utils_getOppositePlacement(placement) {
+  return placement.replace(/left|right|bottom|top/g, side => floating_ui_utils_oppositeSideMap[side]);
+}
+function floating_ui_utils_expandPaddingObject(padding) {
+  return {
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    ...padding
+  };
+}
+function dist_floating_ui_utils_getPaddingObject(padding) {
+  return typeof padding !== 'number' ? floating_ui_utils_expandPaddingObject(padding) : {
+    top: padding,
+    right: padding,
+    bottom: padding,
+    left: padding
+  };
+}
+function dist_floating_ui_utils_rectToClientRect(rect) {
+  return {
+    ...rect,
+    top: rect.y,
+    left: rect.x,
+    right: rect.x + rect.width,
+    bottom: rect.y + rect.height
+  };
+}
+
+
+
+;// CONCATENATED MODULE: ./node_modules/@floating-ui/dom/node_modules/@floating-ui/utils/dist/floating-ui.utils.dom.mjs
 function getNodeName(node) {
   if (isNode(node)) {
     return (node.nodeName || '').toLowerCase();
@@ -9171,7 +8677,7 @@ function getCssDimensions(element) {
   const hasOffset = isHTMLElement(element);
   const offsetWidth = hasOffset ? element.offsetWidth : width;
   const offsetHeight = hasOffset ? element.offsetHeight : height;
-  const shouldFallback = round(width) !== offsetWidth || round(height) !== offsetHeight;
+  const shouldFallback = floating_ui_utils_round(width) !== offsetWidth || floating_ui_utils_round(height) !== offsetHeight;
   if (shouldFallback) {
     width = offsetWidth;
     height = offsetHeight;
@@ -9190,7 +8696,7 @@ function unwrapElement(element) {
 function getScale(element) {
   const domElement = unwrapElement(element);
   if (!isHTMLElement(domElement)) {
-    return createCoords(1);
+    return floating_ui_utils_createCoords(1);
   }
   const rect = domElement.getBoundingClientRect();
   const {
@@ -9198,8 +8704,8 @@ function getScale(element) {
     height,
     $
   } = getCssDimensions(domElement);
-  let x = ($ ? round(rect.width) : rect.width) / width;
-  let y = ($ ? round(rect.height) : rect.height) / height;
+  let x = ($ ? floating_ui_utils_round(rect.width) : rect.width) / width;
+  let y = ($ ? floating_ui_utils_round(rect.height) : rect.height) / height;
 
   // 0, NaN, or Infinity should always fallback to 1.
 
@@ -9215,7 +8721,7 @@ function getScale(element) {
   };
 }
 
-const noOffsets = /*#__PURE__*/createCoords(0);
+const noOffsets = /*#__PURE__*/floating_ui_utils_createCoords(0);
 function getVisualOffsets(element) {
   const win = floating_ui_utils_dom_getWindow(element);
   if (!isWebKit() || !win.visualViewport) {
@@ -9245,7 +8751,7 @@ function getBoundingClientRect(element, includeScale, isFixedStrategy, offsetPar
   }
   const clientRect = element.getBoundingClientRect();
   const domElement = unwrapElement(element);
-  let scale = createCoords(1);
+  let scale = floating_ui_utils_createCoords(1);
   if (includeScale) {
     if (offsetParent) {
       if (isElement(offsetParent)) {
@@ -9255,7 +8761,7 @@ function getBoundingClientRect(element, includeScale, isFixedStrategy, offsetPar
       scale = getScale(element);
     }
   }
-  const visualOffsets = shouldAddVisualOffsets(domElement, isFixedStrategy, offsetParent) ? getVisualOffsets(domElement) : createCoords(0);
+  const visualOffsets = shouldAddVisualOffsets(domElement, isFixedStrategy, offsetParent) ? getVisualOffsets(domElement) : floating_ui_utils_createCoords(0);
   let x = (clientRect.left + visualOffsets.x) / scale.x;
   let y = (clientRect.top + visualOffsets.y) / scale.y;
   let width = clientRect.width / scale.x;
@@ -9317,8 +8823,8 @@ function convertOffsetParentRelativeRectToViewportRelativeRect(_ref) {
     scrollLeft: 0,
     scrollTop: 0
   };
-  let scale = createCoords(1);
-  const offsets = createCoords(0);
+  let scale = floating_ui_utils_createCoords(1);
+  const offsets = floating_ui_utils_createCoords(0);
   const isOffsetParentAnElement = isHTMLElement(offsetParent);
   if (isOffsetParentAnElement || !isOffsetParentAnElement && !isFixed) {
     if (getNodeName(offsetParent) !== 'body' || isOverflowElement(documentElement)) {
@@ -9355,12 +8861,12 @@ function getDocumentRect(element) {
   const html = getDocumentElement(element);
   const scroll = getNodeScroll(element);
   const body = element.ownerDocument.body;
-  const width = floating_ui_utils_max(html.scrollWidth, html.clientWidth, body.scrollWidth, body.clientWidth);
-  const height = floating_ui_utils_max(html.scrollHeight, html.clientHeight, body.scrollHeight, body.clientHeight);
+  const width = dist_floating_ui_utils_max(html.scrollWidth, html.clientWidth, body.scrollWidth, body.clientWidth);
+  const height = dist_floating_ui_utils_max(html.scrollHeight, html.clientHeight, body.scrollHeight, body.clientHeight);
   let x = -scroll.scrollLeft + getWindowScrollBarX(element);
   const y = -scroll.scrollTop;
   if (floating_ui_utils_dom_getComputedStyle(body).direction === 'rtl') {
-    x += floating_ui_utils_max(html.clientWidth, body.clientWidth) - width;
+    x += dist_floating_ui_utils_max(html.clientWidth, body.clientWidth) - width;
   }
   return {
     width,
@@ -9400,7 +8906,7 @@ function getInnerBoundingClientRect(element, strategy) {
   const clientRect = getBoundingClientRect(element, true, strategy === 'fixed');
   const top = clientRect.top + element.clientTop;
   const left = clientRect.left + element.clientLeft;
-  const scale = isHTMLElement(element) ? getScale(element) : createCoords(1);
+  const scale = isHTMLElement(element) ? getScale(element) : floating_ui_utils_createCoords(1);
   const width = element.clientWidth * scale.x;
   const height = element.clientHeight * scale.y;
   const x = left * scale.x;
@@ -9486,10 +8992,10 @@ function getClippingRect(_ref) {
   const firstClippingAncestor = clippingAncestors[0];
   const clippingRect = clippingAncestors.reduce((accRect, clippingAncestor) => {
     const rect = getClientRectFromClippingAncestor(element, clippingAncestor, strategy);
-    accRect.top = floating_ui_utils_max(rect.top, accRect.top);
-    accRect.right = floating_ui_utils_min(rect.right, accRect.right);
-    accRect.bottom = floating_ui_utils_min(rect.bottom, accRect.bottom);
-    accRect.left = floating_ui_utils_max(rect.left, accRect.left);
+    accRect.top = dist_floating_ui_utils_max(rect.top, accRect.top);
+    accRect.right = dist_floating_ui_utils_min(rect.right, accRect.right);
+    accRect.bottom = dist_floating_ui_utils_min(rect.bottom, accRect.bottom);
+    accRect.left = dist_floating_ui_utils_max(rect.left, accRect.left);
     return accRect;
   }, getClientRectFromClippingAncestor(element, firstClippingAncestor, strategy));
   return {
@@ -9520,7 +9026,7 @@ function getRectRelativeToOffsetParent(element, offsetParent, strategy) {
     scrollLeft: 0,
     scrollTop: 0
   };
-  const offsets = createCoords(0);
+  const offsets = floating_ui_utils_createCoords(0);
   if (isOffsetParentAnElement || !isOffsetParentAnElement && !isFixed) {
     if (getNodeName(offsetParent) !== 'body' || isOverflowElement(documentElement)) {
       scroll = getNodeScroll(offsetParent);
@@ -9631,14 +9137,14 @@ function observeMove(element, onMove) {
     if (!width || !height) {
       return;
     }
-    const insetTop = floor(top);
-    const insetRight = floor(root.clientWidth - (left + width));
-    const insetBottom = floor(root.clientHeight - (top + height));
-    const insetLeft = floor(left);
+    const insetTop = floating_ui_utils_floor(top);
+    const insetRight = floating_ui_utils_floor(root.clientWidth - (left + width));
+    const insetBottom = floating_ui_utils_floor(root.clientHeight - (top + height));
+    const insetLeft = floating_ui_utils_floor(left);
     const rootMargin = -insetTop + "px " + -insetRight + "px " + -insetBottom + "px " + -insetLeft + "px";
     const options = {
       rootMargin,
-      threshold: floating_ui_utils_max(0, floating_ui_utils_min(1, threshold)) || 1
+      threshold: dist_floating_ui_utils_max(0, dist_floating_ui_utils_min(1, threshold)) || 1
     };
     let isFirstUpdate = true;
     function handleObserve(entries) {
@@ -31579,10 +31085,10 @@ function UnforwardedButton(props, ref) {
   const elementChildren = (0,external_React_.createElement)(external_React_.Fragment, null, icon && iconPosition === 'left' && (0,external_React_.createElement)(build_module_icon, {
     icon: icon,
     size: iconSize
-  }), text && (0,external_React_.createElement)(external_React_.Fragment, null, text), icon && iconPosition === 'right' && (0,external_React_.createElement)(build_module_icon, {
+  }), text && (0,external_React_.createElement)(external_React_.Fragment, null, text), children, icon && iconPosition === 'right' && (0,external_React_.createElement)(build_module_icon, {
     icon: icon,
     size: iconSize
-  }), children);
+  }));
   const element = Tag === 'a' ? (0,external_React_.createElement)("a", {
     ...anchorProps,
     ...additionalProps,
@@ -31930,7 +31436,12 @@ function useHStack(props) {
     ...otherProps,
     gap: spacing
   };
-  const flexProps = useFlex(propsForFlex);
+
+  // Omit `isColumn` because it's not used in HStack.
+  const {
+    isColumn,
+    ...flexProps
+  } = useFlex(propsForFlex);
   return flexProps;
 }
 
@@ -32616,7 +32127,7 @@ function getDefaultUseItems(autocompleter) {
   };
 }
 
-;// CONCATENATED MODULE: ./node_modules/@floating-ui/react-dom/dist/floating-ui.react-dom.mjs
+;// CONCATENATED MODULE: ./packages/components/node_modules/@floating-ui/react-dom/dist/floating-ui.react-dom.esm.js
 
 
 
@@ -32629,7 +32140,7 @@ function getDefaultUseItems(autocompleter) {
  * This wraps the core `arrow` middleware to allow React refs as the element.
  * @see https://floating-ui.com/docs/arrow
  */
-const floating_ui_react_dom_arrow = options => {
+const floating_ui_react_dom_esm_arrow = options => {
   function isRef(value) {
     return {}.hasOwnProperty.call(value, 'current');
   }
@@ -32649,8 +32160,7 @@ const floating_ui_react_dom_arrow = options => {
           }).fn(state);
         }
         return {};
-      }
-      if (element) {
+      } else if (element) {
         return floating_ui_dom_arrow({
           element,
           padding
@@ -32675,13 +32185,11 @@ function deepEqual(a, b) {
   if (typeof a === 'function' && a.toString() === b.toString()) {
     return true;
   }
-  let length;
-  let i;
-  let keys;
-  if (a && b && typeof a === 'object') {
+  let length, i, keys;
+  if (a && b && typeof a == 'object') {
     if (Array.isArray(a)) {
       length = a.length;
-      if (length !== b.length) return false;
+      if (length != b.length) return false;
       for (i = length; i-- !== 0;) {
         if (!deepEqual(a[i], b[i])) {
           return false;
@@ -32710,8 +32218,6 @@ function deepEqual(a, b) {
     }
     return true;
   }
-
-  // biome-ignore lint/suspicious/noSelfCompare: in source
   return a !== a && b !== b;
 }
 
@@ -32723,7 +32229,7 @@ function getDPR(element) {
   return win.devicePixelRatio || 1;
 }
 
-function floating_ui_react_dom_roundByDPR(element, value) {
+function floating_ui_react_dom_esm_roundByDPR(element, value) {
   const dpr = getDPR(element);
   return Math.round(value * dpr) / dpr;
 }
@@ -32738,7 +32244,7 @@ function useLatestRef(value) {
 
 /**
  * Provides data to position a floating element.
- * @see https://floating-ui.com/docs/useFloating
+ * @see https://floating-ui.com/docs/react
  */
 function useFloating(options) {
   if (options === void 0) {
@@ -32772,23 +32278,22 @@ function useFloating(options) {
   const [_reference, _setReference] = external_React_.useState(null);
   const [_floating, _setFloating] = external_React_.useState(null);
   const setReference = external_React_.useCallback(node => {
-    if (node !== referenceRef.current) {
+    if (node != referenceRef.current) {
       referenceRef.current = node;
       _setReference(node);
     }
-  }, []);
+  }, [_setReference]);
   const setFloating = external_React_.useCallback(node => {
     if (node !== floatingRef.current) {
       floatingRef.current = node;
       _setFloating(node);
     }
-  }, []);
+  }, [_setFloating]);
   const referenceEl = externalReference || _reference;
   const floatingEl = externalFloating || _floating;
   const referenceRef = external_React_.useRef(null);
   const floatingRef = external_React_.useRef(null);
   const dataRef = external_React_.useRef(data);
-  const hasWhileElementsMounted = whileElementsMounted != null;
   const whileElementsMountedRef = useLatestRef(whileElementsMounted);
   const platformRef = useLatestRef(platform);
   const update = external_React_.useCallback(() => {
@@ -32832,18 +32337,17 @@ function useFloating(options) {
       isMountedRef.current = false;
     };
   }, []);
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: `hasWhileElementsMounted` is intentionally included.
   index(() => {
     if (referenceEl) referenceRef.current = referenceEl;
     if (floatingEl) floatingRef.current = floatingEl;
     if (referenceEl && floatingEl) {
       if (whileElementsMountedRef.current) {
         return whileElementsMountedRef.current(referenceEl, floatingEl, update);
+      } else {
+        update();
       }
-      update();
     }
-  }, [referenceEl, floatingEl, update, whileElementsMountedRef, hasWhileElementsMounted]);
+  }, [referenceEl, floatingEl, update, whileElementsMountedRef]);
   const refs = external_React_.useMemo(() => ({
     reference: referenceRef,
     floating: floatingRef,
@@ -32863,8 +32367,8 @@ function useFloating(options) {
     if (!elements.floating) {
       return initialStyles;
     }
-    const x = floating_ui_react_dom_roundByDPR(elements.floating, data.x);
-    const y = floating_ui_react_dom_roundByDPR(elements.floating, data.y);
+    const x = floating_ui_react_dom_esm_roundByDPR(elements.floating, data.x);
+    const y = floating_ui_react_dom_esm_roundByDPR(elements.floating, data.y);
     if (transform) {
       return {
         ...initialStyles,
@@ -34892,7 +34396,7 @@ const UnconnectedPopover = (props, forwardedRef) => {
     crossAxis: true,
     limiter: floating_ui_dom_limitShift(),
     padding: 1 // Necessary to avoid flickering at the edge of the viewport.
-  }), floating_ui_react_dom_arrow({
+  }), floating_ui_react_dom_esm_arrow({
     element: arrowRef
   })];
   const slotName = (0,external_wp_element_namespaceObject.useContext)(slotNameContext) || __unstableSlotName;
@@ -35243,6 +34747,35 @@ function useOnClickOutside(ref, handler) {
   }, [handler]);
 }
 
+;// CONCATENATED MODULE: ./packages/components/build-module/utils/with-ignore-ime-events.js
+/**
+ * A higher-order function that wraps a keydown event handler to ensure it is not an IME event.
+ *
+ * In CJK languages, an IME (Input Method Editor) is used to input complex characters.
+ * During an IME composition, keydown events (e.g. Enter or Escape) can be fired
+ * which are intended to control the IME and not the application.
+ * These events should be ignored by any application logic.
+ *
+ * @param keydownHandler The keydown event handler to execute after ensuring it was not an IME event.
+ *
+ * @return A wrapped version of the given event handler that ignores IME events.
+ */
+function withIgnoreIMEEvents(keydownHandler) {
+  return event => {
+    const {
+      isComposing
+    } = 'nativeEvent' in event ? event.nativeEvent : event;
+    if (isComposing ||
+    // Workaround for Mac Safari where the final Enter/Backspace of an IME composition
+    // is `isComposing=false`, even though it's technically still part of the composition.
+    // These can only be detected by keyCode.
+    event.keyCode === 229) {
+      return;
+    }
+    keydownHandler(event);
+  };
+}
+
 ;// CONCATENATED MODULE: ./packages/components/build-module/autocomplete/index.js
 
 /**
@@ -35262,6 +34795,7 @@ function useOnClickOutside(ref, handler) {
 /**
  * Internal dependencies
  */
+
 
 
 const getNodeText = node => {
@@ -35372,13 +34906,7 @@ function useAutocomplete({
     if (filteredOptions.length === 0) {
       return;
     }
-    if (event.defaultPrevented ||
-    // Ignore keydowns from IMEs
-    event.isComposing ||
-    // Workaround for Mac Safari where the final Enter/Backspace of an IME composition
-    // is `isComposing=false`, even though it's technically still part of the composition.
-    // These can only be detected by keyCode.
-    event.keyCode === 229) {
+    if (event.defaultPrevented) {
       return;
     }
     switch (event.key) {
@@ -35522,7 +35050,7 @@ function useAutocomplete({
   return {
     listBoxId,
     activeId,
-    onKeyDown: handleKeyDown,
+    onKeyDown: withIgnoreIMEEvents(handleKeyDown),
     popover: hasSelection && AutocompleterUI && (0,external_React_.createElement)(AutocompleterUI, {
       className: className,
       filterValue: filterValue,
@@ -38338,13 +37866,12 @@ const RangeControl = (0,external_wp_element_namespaceObject.forwardRef)(Unforwar
 
 
 
-
 const NumberControlWrapper = /*#__PURE__*/emotion_styled_base_browser_esm(number_control,  true ? {
   target: "ez9hsf47"
-} : 0)(Container, "{width:", space(24), ";}" + ( true ? "" : 0));
+} : 0)("width:", space(24), ";" + ( true ? "" : 0));
 const styles_SelectControl = /*#__PURE__*/emotion_styled_base_browser_esm(select_control,  true ? {
   target: "ez9hsf46"
-} : 0)("margin-left:", space(-2), ";width:5em;select:not( :focus )~", BackdropUI, BackdropUI, BackdropUI, "{border-color:transparent;}" + ( true ? "" : 0));
+} : 0)("margin-left:", space(-2), ";width:5em;" + ( true ? "" : 0));
 const styles_RangeControl = /*#__PURE__*/emotion_styled_base_browser_esm(range_control,  true ? {
   target: "ez9hsf45"
 } : 0)("flex:1;margin-right:", space(2), ";" + ( true ? "" : 0));
@@ -38936,6 +38463,13 @@ const options = [{
   label: 'Hex',
   value: 'hex'
 }];
+
+// `isBorderless` is still experimental and not a public prop for InputControl yet.
+const BORDERLESS_SELECT_CONTROL_CONTEXT = {
+  InputBase: {
+    isBorderless: true
+  }
+};
 const UnconnectedColorPicker = (props, forwardedRef) => {
   const {
     enableAlpha = false,
@@ -38979,6 +38513,8 @@ const UnconnectedColorPicker = (props, forwardedRef) => {
     onDragEnd: onPickerDragEnd
   }), (0,external_React_.createElement)(AuxiliaryColorArtefactWrapper, null, (0,external_React_.createElement)(AuxiliaryColorArtefactHStackHeader, {
     justify: "space-between"
+  }, (0,external_React_.createElement)(ContextSystemProvider, {
+    value: BORDERLESS_SELECT_CONTROL_CONTEXT
   }, (0,external_React_.createElement)(styles_SelectControl, {
     __nextHasNoMarginBottom: true,
     options: options,
@@ -38986,7 +38522,7 @@ const UnconnectedColorPicker = (props, forwardedRef) => {
     onChange: nextColorType => setColorType(nextColorType),
     label: (0,external_wp_i18n_namespaceObject.__)('Color format'),
     hideLabelFromVision: true
-  }), (0,external_React_.createElement)(ColorCopyButton, {
+  })), (0,external_React_.createElement)(ColorCopyButton, {
     color: safeColordColor,
     colorType: copyFormat || colorType
   })), (0,external_React_.createElement)(ColorInputWrapper, {
@@ -46787,20 +46323,15 @@ function UnForwardedTokenInput(props, ref) {
 const TokenInput = (0,external_wp_element_namespaceObject.forwardRef)(UnForwardedTokenInput);
 /* harmony default export */ const token_input = (TokenInput);
 
-// EXTERNAL MODULE: ./node_modules/dom-scroll-into-view/lib/index.js
-var lib = __webpack_require__(5425);
-var lib_default = /*#__PURE__*/__webpack_require__.n(lib);
 ;// CONCATENATED MODULE: ./packages/components/build-module/form-token-field/suggestions-list.js
 
 /**
  * External dependencies
  */
 
-
 /**
  * WordPress dependencies
  */
-
 
 
 /**
@@ -46822,18 +46353,15 @@ function SuggestionsList({
   instanceId,
   __experimentalRenderItem
 }) {
-  const [scrollingIntoView, setScrollingIntoView] = (0,external_wp_element_namespaceObject.useState)(false);
   const listRef = (0,external_wp_compose_namespaceObject.useRefEffect)(listNode => {
     // only have to worry about scrolling selected suggestion into view
     // when already expanded.
     let rafId;
     if (selectedIndex > -1 && scrollIntoView && listNode.children[selectedIndex]) {
-      setScrollingIntoView(true);
-      lib_default()(listNode.children[selectedIndex], listNode, {
-        onlyScrollIfNeeded: true
-      });
-      rafId = requestAnimationFrame(() => {
-        setScrollingIntoView(false);
+      listNode.children[selectedIndex].scrollIntoView({
+        behavior: 'instant',
+        block: 'nearest',
+        inline: 'nearest'
       });
     }
     return () => {
@@ -46844,9 +46372,7 @@ function SuggestionsList({
   }, [selectedIndex, scrollIntoView]);
   const handleHover = suggestion => {
     return () => {
-      if (!scrollingIntoView) {
-        onHover?.(suggestion);
-      }
+      onHover?.(suggestion);
     };
   };
   const handleClick = suggestion => {
@@ -46945,6 +46471,7 @@ function SuggestionsList({
 /**
  * Internal dependencies
  */
+
 
 
 
@@ -47078,15 +46605,9 @@ function ComboboxControl(props) {
     setSelectedSuggestion(matchingSuggestions[nextIndex]);
     setIsExpanded(true);
   };
-  const onKeyDown = event => {
+  const onKeyDown = withIgnoreIMEEvents(event => {
     let preventDefault = false;
-    if (event.defaultPrevented ||
-    // Ignore keydowns from IMEs
-    event.nativeEvent.isComposing ||
-    // Workaround for Mac Safari where the final Enter/Backspace of an IME composition
-    // is `isComposing=false`, even though it's technically still part of the composition.
-    // These can only be detected by keyCode.
-    event.keyCode === 229) {
+    if (event.defaultPrevented) {
       return;
     }
     switch (event.code) {
@@ -47115,7 +46636,7 @@ function ComboboxControl(props) {
     if (preventDefault) {
       event.preventDefault();
     }
-  };
+  });
   const onBlur = () => {
     setInputHasFocus(false);
   };
@@ -47471,6 +46992,8 @@ function unmodalize() {
 
 
 
+
+
 // Used to track and dismiss the prior modal when another opens unless nested.
 const ModalContext = (0,external_wp_element_namespaceObject.createContext)([]);
 
@@ -47605,15 +47128,6 @@ function UnforwardedModal(props, forwardedRef) {
     };
   }, [isContentScrollable, childrenContainerRef]);
   function handleEscapeKeyDown(event) {
-    if (
-    // Ignore keydowns from IMEs
-    event.nativeEvent.isComposing ||
-    // Workaround for Mac Safari where the final Enter/Backspace of an IME composition
-    // is `isComposing=false`, even though it's technically still part of the composition.
-    // These can only be detected by keyCode.
-    event.keyCode === 229) {
-      return;
-    }
     if (shouldCloseOnEsc && (event.code === 'Escape' || event.key === 'Escape') && !event.defaultPrevented) {
       event.preventDefault();
       if (onRequestClose) {
@@ -47659,7 +47173,7 @@ function UnforwardedModal(props, forwardedRef) {
   (0,external_React_.createElement)("div", {
     ref: (0,external_wp_compose_namespaceObject.useMergeRefs)([ref, forwardedRef]),
     className: classnames_default()('components-modal__screen-overlay', overlayClassName),
-    onKeyDown: handleEscapeKeyDown,
+    onKeyDown: withIgnoreIMEEvents(handleEscapeKeyDown),
     ...(shouldCloseOnClickOutside ? overlayPressHandlers : {})
   }, (0,external_React_.createElement)(style_provider, {
     document: document
@@ -52013,22 +51527,6 @@ function useMultipleSelection(userProps) {
 /* harmony default export */ const downshift_esm = ((/* unused pure expression or super */ null && (Downshift)));
 
 
-;// CONCATENATED MODULE: ./packages/components/build-module/custom-select-control/styles.js
-
-/**
- * External dependencies
- */
-
-/**
- * Internal dependencies
- */
-
-
-const backCompatMinWidth = props => !props.__nextUnconstrainedWidth ? /*#__PURE__*/emotion_react_browser_esm_css(Container, "{min-width:130px;}" + ( true ? "" : 0),  true ? "" : 0) : '';
-const InputBaseWithBackCompatMinWidth = /*#__PURE__*/emotion_styled_base_browser_esm(input_base,  true ? {
-  target: "eswuck60"
-} : 0)(backCompatMinWidth, ";" + ( true ? "" : 0));
-
 ;// CONCATENATED MODULE: ./packages/components/build-module/custom-select-control/index.js
 
 // @ts-nocheck
@@ -52041,7 +51539,6 @@ const InputBaseWithBackCompatMinWidth = /*#__PURE__*/emotion_styled_base_browser
 /**
  * WordPress dependencies
  */
-
 
 
 
@@ -52090,8 +51587,6 @@ function CustomSelectControl(props) {
   const {
     /** Start opting into the larger default height that will become the default size in a future version. */
     __next40pxDefaultSize = false,
-    /** Start opting into the unconstrained width that will become the default in a future version. */
-    __nextUnconstrainedWidth = false,
     className,
     hideLabelFromVision,
     label,
@@ -52134,13 +51629,6 @@ function CustomSelectControl(props) {
     setIsFocused(false);
     onBlur?.(e);
   }
-  if (!__nextUnconstrainedWidth) {
-    external_wp_deprecated_default()('Constrained width styles for wp.components.CustomSelectControl', {
-      since: '6.1',
-      version: '6.4',
-      hint: 'Set the `__nextUnconstrainedWidth` prop to true to start opting into the new styles, which will become the default in a future version'
-    });
-  }
   function getDescribedBy() {
     if (describedBy) {
       return describedBy;
@@ -52175,12 +51663,9 @@ function CustomSelectControl(props) {
     ...getLabelProps({
       className: 'components-custom-select-control__label'
     })
-  }, label), (0,external_React_.createElement)(InputBaseWithBackCompatMinWidth, {
+  }, label), (0,external_React_.createElement)(input_base, {
     __next40pxDefaultSize: __next40pxDefaultSize,
-    __nextUnconstrainedWidth: __nextUnconstrainedWidth,
     isFocused: isOpen || isFocused,
-    __unstableInputWidth: __nextUnconstrainedWidth ? undefined : 'auto',
-    labelPosition: __nextUnconstrainedWidth ? undefined : 'top',
     size: size,
     suffix: (0,external_React_.createElement)(select_control_chevron_down, null)
   }, (0,external_React_.createElement)(Select, {
@@ -59087,7 +58572,6 @@ const FontSizePickerSelect = props => {
   const selectedOption = value ? (_options$find = options.find(option => option.value === value)) !== null && _options$find !== void 0 ? _options$find : CUSTOM_OPTION : DEFAULT_OPTION;
   return (0,external_React_.createElement)(CustomSelectControl, {
     __next40pxDefaultSize: __next40pxDefaultSize,
-    __nextUnconstrainedWidth: true,
     className: "components-font-size-picker__select",
     label: (0,external_wp_i18n_namespaceObject.__)('Font size'),
     hideLabelFromVision: true,
@@ -59652,6 +59136,7 @@ const TokensAndInputWrapperFlex = /*#__PURE__*/emotion_styled_base_browser_esm(f
 
 
 
+
 const form_token_field_identity = value => value;
 
 /**
@@ -59789,13 +59274,7 @@ function FormTokenField(props) {
   }
   function onKeyDown(event) {
     let preventDefault = false;
-    if (event.defaultPrevented ||
-    // Ignore keydowns from IMEs
-    event.nativeEvent.isComposing ||
-    // Workaround for Mac Safari where the final Enter/Backspace of an IME composition
-    // is `isComposing=false`, even though it's technically still part of the composition.
-    // These can only be detected by keyCode.
-    event.keyCode === 229) {
+    if (event.defaultPrevented) {
       return;
     }
     switch (event.key) {
@@ -60134,7 +59613,7 @@ function FormTokenField(props) {
   const matchingSuggestions = getMatchingSuggestions();
   if (!disabled) {
     tokenFieldProps = Object.assign({}, tokenFieldProps, {
-      onKeyDown,
+      onKeyDown: withIgnoreIMEEvents(onKeyDown),
       onKeyPress,
       onFocus: onFocusHandler
     });
@@ -66142,9 +65621,10 @@ function UnforwardedSnackbar({
     className: classes,
     onClick: !explicitDismiss ? dismissMe : undefined,
     tabIndex: 0,
-    role: !explicitDismiss ? 'button' : '',
+    role: !explicitDismiss ? 'button' : undefined,
     onKeyPress: !explicitDismiss ? dismissMe : undefined,
-    "aria-label": !explicitDismiss ? (0,external_wp_i18n_namespaceObject.__)('Dismiss this notice') : ''
+    "aria-label": !explicitDismiss ? (0,external_wp_i18n_namespaceObject.__)('Dismiss this notice') : undefined,
+    "data-testid": "snackbar"
   }, (0,external_React_.createElement)("div", {
     className: snackbarContentClassnames
   }, icon && (0,external_React_.createElement)("div", {
@@ -66261,7 +65741,8 @@ function SnackbarList({
   return (0,external_React_.createElement)("div", {
     className: className,
     tabIndex: -1,
-    ref: listRef
+    ref: listRef,
+    "data-testid": "snackbar-list"
   }, children, (0,external_React_.createElement)(AnimatePresence, null, notices.map(notice => {
     const {
       content,
@@ -70074,10 +69555,10 @@ const animateProgressBar = emotion_react_browser_esm_keyframes({
 const INDETERMINATE_TRACK_WIDTH = 50;
 const styles_Track = emotion_styled_base_browser_esm("div",  true ? {
   target: "e15u147w2"
-} : 0)("position:relative;overflow:hidden;width:100%;max-width:160px;height:", config_values.borderWidthFocus, ";background-color:color-mix(\n\t\tin srgb,\n\t\tvar( --wp-components-color-foreground, ", COLORS.gray[900], " ),\n\t\ttransparent 90%\n\t);border-radius:", config_values.radiusBlockUi, ";outline:2px solid transparent;outline-offset:2px;" + ( true ? "" : 0));
+} : 0)("position:relative;overflow:hidden;width:100%;max-width:160px;height:", config_values.borderWidthFocus, ";background-color:color-mix(\n\t\tin srgb,\n\t\t", COLORS.theme.foreground, ",\n\t\ttransparent 90%\n\t);border-radius:", config_values.radiusBlockUi, ";outline:2px solid transparent;outline-offset:2px;" + ( true ? "" : 0));
 const Indicator = emotion_styled_base_browser_esm("div",  true ? {
   target: "e15u147w1"
-} : 0)("display:inline-block;position:absolute;top:0;height:100%;border-radius:", config_values.radiusBlockUi, ";background-color:color-mix(\n\t\tin srgb,\n\t\tvar( --wp-components-color-foreground, ", COLORS.gray[900], " ),\n\t\ttransparent 10%\n\t);outline:2px solid transparent;outline-offset:-2px;", ({
+} : 0)("display:inline-block;position:absolute;top:0;height:100%;border-radius:", config_values.radiusBlockUi, ";background-color:color-mix(\n\t\tin srgb,\n\t\t", COLORS.theme.foreground, ",\n\t\ttransparent 10%\n\t);outline:2px solid transparent;outline-offset:-2px;", ({
   isIndeterminate,
   value
 }) => isIndeterminate ? /*#__PURE__*/emotion_react_browser_esm_css({
@@ -72967,7 +72448,7 @@ const tabpanel_TabPanel = (0,external_wp_element_namespaceObject.forwardRef)(fun
 
 function Tabs({
   selectOnMove = true,
-  initialTabId,
+  defaultTabId,
   orientation = 'horizontal',
   onSelect,
   children,
@@ -72977,7 +72458,7 @@ function Tabs({
   const store = useTabStore({
     selectOnMove,
     orientation,
-    defaultSelectedId: initialTabId && `${instanceId}-${initialTabId}`,
+    defaultSelectedId: defaultTabId && `${instanceId}-${defaultTabId}`,
     setSelectedId: selectedId => {
       const strippedDownId = typeof selectedId === 'string' ? selectedId.replace(`${instanceId}-`, '') : selectedId;
       onSelect?.(strippedDownId);
@@ -73007,7 +72488,7 @@ function Tabs({
     // Ariakit internally refers to disabled tabs as `dimmed`.
     return !item.dimmed;
   });
-  const initialTab = items.find(item => item.id === `${instanceId}-${initialTabId}`);
+  const initialTab = items.find(item => item.id === `${instanceId}-${defaultTabId}`);
 
   // Handle selecting the initial tab.
   (0,external_wp_element_namespaceObject.useLayoutEffect)(() => {
@@ -73018,8 +72499,8 @@ function Tabs({
     // Wait for the denoted initial tab to be declared before making a
     // selection. This ensures that if a tab is declared lazily it can
     // still receive initial selection, as well as ensuring no tab is
-    // selected if an invalid `initialTabId` is provided.
-    if (initialTabId && !initialTab) {
+    // selected if an invalid `defaultTabId` is provided.
+    if (defaultTabId && !initialTab) {
       return;
     }
 
@@ -73037,7 +72518,7 @@ function Tabs({
         setSelectedId(null);
       }
     }
-  }, [firstEnabledTab, initialTab, initialTabId, isControlled, items, selectedId, setSelectedId]);
+  }, [firstEnabledTab, initialTab, defaultTabId, isControlled, items, selectedId, setSelectedId]);
 
   // Handle the currently selected tab becoming disabled.
   (0,external_wp_element_namespaceObject.useLayoutEffect)(() => {
@@ -73053,7 +72534,7 @@ function Tabs({
     }
 
     // If the currently selected tab becomes disabled, fall back to the
-    // `initialTabId` if possible. Otherwise select the first
+    // `defaultTabId` if possible. Otherwise select the first
     // enabled tab (if there is one).
     if (initialTab && !initialTab.dimmed) {
       setSelectedId(initialTab.id);

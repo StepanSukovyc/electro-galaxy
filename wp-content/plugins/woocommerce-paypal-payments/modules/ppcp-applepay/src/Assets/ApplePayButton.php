@@ -1,4 +1,524 @@
-rt_page(
+<?php
+/**
+ * The Applepay module.
+ *
+ * @package WooCommerce\PayPalCommerce\Applepay
+ */
+
+declare(strict_types=1);
+
+namespace WooCommerce\PayPalCommerce\Applepay\Assets;
+
+use Exception;
+use Psr\Log\LoggerInterface;
+use WC_Cart;
+use WC_Order;
+use WooCommerce\PayPalCommerce\Button\Assets\ButtonInterface;
+use WooCommerce\PayPalCommerce\Button\Helper\CartProductsHelper;
+use WooCommerce\PayPalCommerce\WcGateway\Exception\NotFoundException;
+use WooCommerce\PayPalCommerce\WcGateway\Helper\SettingsStatus;
+use WooCommerce\PayPalCommerce\WcGateway\Processor\OrderProcessor;
+use WooCommerce\PayPalCommerce\WcGateway\Settings\Settings;
+use WooCommerce\PayPalCommerce\Webhooks\Handler\RequestHandlerTrait;
+
+/**
+ * Class ApplePayButton
+ */
+class ApplePayButton implements ButtonInterface {
+	use RequestHandlerTrait;
+
+	/**
+	 * The settings.
+	 *
+	 * @var Settings
+	 */
+	private $settings;
+
+	/**
+	 * The logger.
+	 *
+	 * @var LoggerInterface
+	 */
+	private $logger;
+
+	/**
+	 * The response templates.
+	 *
+	 * @var ResponsesToApple
+	 */
+	private $response_templates;
+
+	/**
+	 * The old cart contents.
+	 *
+	 * @var array
+	 * @psalm-suppress PropertyNotSetInConstructor
+	 */
+	private $old_cart_contents;
+
+	/**
+	 * The method id.
+	 *
+	 * @var string
+	 */
+	protected $id;
+
+	/**
+	 * The method title.
+	 *
+	 * @var string
+	 */
+	protected $method_title;
+
+	/**
+	 * The processor for orders.
+	 *
+	 * @var OrderProcessor
+	 */
+	protected $order_processor;
+
+	/**
+	 * Whether to reload the cart after the order is processed.
+	 *
+	 * @var bool
+	 */
+	protected $reload_cart = false;
+
+	/**
+	 * The module version.
+	 *
+	 * @var string
+	 */
+	private $version;
+
+	/**
+	 * The module URL.
+	 *
+	 * @var string
+	 */
+	private $module_url;
+
+	/**
+	 * The data to send to the ApplePay button script.
+	 *
+	 * @var DataToAppleButtonScripts
+	 */
+	private $script_data;
+
+	/**
+	 * The Settings status helper.
+	 *
+	 * @var SettingsStatus
+	 */
+	private $settings_status;
+
+	/**
+	 * The cart products helper.
+	 *
+	 * @var CartProductsHelper
+	 */
+	protected $cart_products;
+
+	/**
+	 * PayPalPaymentMethod constructor.
+	 *
+	 * @param Settings                 $settings The settings.
+	 * @param LoggerInterface          $logger The logger.
+	 * @param OrderProcessor           $order_processor The Order processor.
+	 * @param string                   $module_url The module URL.
+	 * @param string                   $version The module version.
+	 * @param DataToAppleButtonScripts $data The data to send to the ApplePay button script.
+	 * @param SettingsStatus           $settings_status The settings status helper.
+	 * @param CartProductsHelper       $cart_products The cart products helper.
+	 */
+	public function __construct(
+		Settings $settings,
+		LoggerInterface $logger,
+		OrderProcessor $order_processor,
+		string $module_url,
+		string $version,
+		DataToAppleButtonScripts $data,
+		SettingsStatus $settings_status,
+		CartProductsHelper $cart_products
+	) {
+		$this->settings           = $settings;
+		$this->response_templates = new ResponsesToApple();
+		$this->logger             = $logger;
+		$this->id                 = 'applepay';
+		$this->method_title       = __( 'Apple Pay', 'woocommerce-paypal-payments' );
+		$this->order_processor    = $order_processor;
+		$this->module_url         = $module_url;
+		$this->version            = $version;
+		$this->script_data        = $data;
+		$this->settings_status    = $settings_status;
+		$this->cart_products      = $cart_products;
+	}
+
+	/**
+	 * Initializes the class hooks.
+	 */
+	public function initialize(): void {
+		add_filter( 'ppcp_onboarding_options', array( $this, 'add_apple_onboarding_option' ), 10, 1 );
+		add_filter(
+			'ppcp_partner_referrals_option',
+			function ( array $option ): array {
+				if ( $option['valid'] ) {
+					return $option;
+				}
+				if ( $option['field'] === 'ppcp-onboarding-apple' ) {
+					$option['valid'] = true;
+					$option['value'] = ( $option['value'] ? '1' : '' );
+				}
+				return $option;
+			}
+		);
+		add_filter(
+			'ppcp_partner_referrals_data',
+			function ( array $data ): array {
+				try {
+					$onboard_with_apple = $this->settings->get( 'ppcp-onboarding-apple' );
+					if ( $onboard_with_apple !== '1' ) {
+						return $data;
+					}
+				} catch ( NotFoundException $exception ) {
+					return $data;
+				}
+
+				if ( in_array( 'PPCP', $data['products'], true ) ) {
+					$data['products'][] = 'PAYMENT_METHODS';
+				} elseif ( in_array( 'EXPRESS_CHECKOUT', $data['products'], true ) ) {
+					$data['products'][0] = 'PAYMENT_METHODS';
+				}
+				$data['capabilities'][] = 'APPLE_PAY';
+
+				return $data;
+			}
+		);
+	}
+
+	/**
+	 * Adds the ApplePay onboarding option.
+	 *
+	 * @param string $options The options.
+	 *
+	 * @return string
+	 */
+	public function add_apple_onboarding_option( $options ): string {
+		if ( ! apply_filters( 'woocommerce_paypal_payments_apple_pay_onboarding_option', false ) ) {
+			return $options;
+		}
+
+		$checked = '';
+		try {
+			$onboard_with_apple = $this->settings->get( 'ppcp-onboarding-apple' );
+			if ( $onboard_with_apple === '1' ) {
+				$checked = 'checked';
+			}
+		} catch ( NotFoundException $exception ) {
+			$checked = '';
+		}
+
+		return $options . '<li><label><input type="checkbox" id="ppcp-onboarding-apple" ' . $checked . ' data-onboarding-option="ppcp-onboarding-apple"> ' .
+			__( 'Onboard with ApplePay', 'woocommerce-paypal-payments' ) . '
+		</label></li>';
+
+	}
+
+	/**
+	 * Adds all the Ajax actions to perform the whole workflow
+	 */
+	public function bootstrap_ajax_request(): void {
+		add_action(
+			'wp_ajax_' . PropertiesDictionary::VALIDATE,
+			array( $this, 'validate' )
+		);
+		add_action(
+			'wp_ajax_nopriv_' . PropertiesDictionary::VALIDATE,
+			array( $this, 'validate' )
+		);
+		add_action(
+			'wp_ajax_' . PropertiesDictionary::CREATE_ORDER,
+			array( $this, 'create_wc_order' )
+		);
+		add_action(
+			'wp_ajax_nopriv_' . PropertiesDictionary::CREATE_ORDER,
+			array( $this, 'create_wc_order' )
+		);
+		add_action(
+			'wp_ajax_' . PropertiesDictionary::UPDATE_SHIPPING_CONTACT,
+			array( $this, 'update_shipping_contact' )
+		);
+		add_action(
+			'wp_ajax_nopriv_' . PropertiesDictionary::UPDATE_SHIPPING_CONTACT,
+			array( $this, 'update_shipping_contact' )
+		);
+		add_action(
+			'wp_ajax_' . PropertiesDictionary::UPDATE_SHIPPING_METHOD,
+			array( $this, 'update_shipping_method' )
+		);
+		add_action(
+			'wp_ajax_nopriv_' . PropertiesDictionary::UPDATE_SHIPPING_METHOD,
+			array( $this, 'update_shipping_method' )
+		);
+	}
+
+	/**
+	 * Method to validate the merchant in the db flag
+	 * On fail triggers and option that shows an admin notice showing the error
+	 * On success removes such flag
+	 */
+	public function validate(): void {
+		$applepay_request_data_object = $this->applepay_data_object_http();
+		if ( ! $this->is_nonce_valid() ) {
+			return;
+		}
+		$applepay_request_data_object->validation_data();
+		$settings = $this->settings;
+		$settings->set( 'applepay_validated', $applepay_request_data_object->validated_flag() );
+		$settings->persist();
+		wp_send_json_success();
+	}
+	/**
+	 * Method to validate and update the shipping contact of the user
+	 * It updates the amount paying information if needed
+	 * On error returns an array of errors to be handled by the script
+	 * On success returns the new contact data
+	 */
+	public function update_shipping_contact(): void {
+		$applepay_request_data_object = $this->applepay_data_object_http();
+		if ( ! $this->is_nonce_valid() ) {
+			return;
+		}
+		$applepay_request_data_object->update_contact_data();
+		if ( $applepay_request_data_object->has_errors() ) {
+			$this->response_templates->response_with_data_errors( $applepay_request_data_object->errors() );
+			return;
+		}
+
+		if ( ! class_exists( 'WC_Countries' ) ) {
+			return;
+		}
+
+		$countries                  = $this->create_wc_countries();
+		$allowed_selling_countries  = $countries->get_allowed_countries();
+		$allowed_shipping_countries = $countries->get_shipping_countries();
+		$user_country               = $applepay_request_data_object->simplified_contact()['country'];
+		$is_allowed_selling_country = array_key_exists(
+			$user_country,
+			$allowed_selling_countries
+		);
+
+		$is_allowed_shipping_country = array_key_exists(
+			$user_country,
+			$allowed_shipping_countries
+		);
+
+		if ( ! $is_allowed_selling_country ) {
+			$this->response_templates->response_with_data_errors(
+				array( array( 'errorCode' => 'addressUnserviceable' ) )
+			);
+			return;
+		}
+		if ( $applepay_request_data_object->need_shipping() && ! $is_allowed_shipping_country ) {
+			$this->response_templates->response_with_data_errors(
+				array( array( 'errorCode' => 'addressUnserviceable' ) )
+			);
+			return;
+		}
+		try {
+			$payment_details = $this->which_calculate_totals( $applepay_request_data_object );
+			if ( ! is_array( $payment_details ) ) {
+				$this->response_templates->response_with_data_errors(
+					array(
+						array(
+							'errorCode' => 'addressUnserviceable',
+							'message'   => __( 'Error processing cart', 'woocommerce-paypal-payments' ),
+						),
+					)
+				);
+				return;
+			}
+			$response = $this->response_templates->apple_formatted_response( $payment_details );
+			$this->response_templates->response_success( $response );
+		} catch ( \Exception $e ) {
+			$this->response_templates->response_with_data_errors(
+				array(
+					array(
+						'errorCode' => 'addressUnserviceable',
+						'message'   => $e->getMessage(),
+					),
+				)
+			);
+		}
+	}
+
+	/**
+	 * Method to validate and update the shipping method selected by the user
+	 * It updates the amount paying information if needed
+	 * On error returns an array of errors to be handled by the script
+	 * On success returns the new contact data
+	 */
+	public function update_shipping_method(): void {
+		$applepay_request_data_object = $this->applepay_data_object_http();
+		if ( ! $this->is_nonce_valid() ) {
+			return;
+		}
+		$applepay_request_data_object->update_method_data();
+		if ( $applepay_request_data_object->has_errors() ) {
+			$this->response_templates->response_with_data_errors( $applepay_request_data_object->errors() );
+		}
+		try {
+			$payment_details = $this->which_calculate_totals( $applepay_request_data_object );
+			if ( ! is_array( $payment_details ) ) {
+				$this->response_templates->response_with_data_errors(
+					array(
+						array(
+							'errorCode' => 'addressUnserviceable',
+							'message'   => __( 'Error processing cart', 'woocommerce-paypal-payments' ),
+						),
+					)
+				);
+				return;
+			}
+			$response = $this->response_templates->apple_formatted_response( $payment_details );
+			$this->response_templates->response_success( $response );
+		} catch ( \Exception $e ) {
+			$this->response_templates->response_with_data_errors(
+				array(
+					array(
+						'errorCode' => 'addressUnserviceable',
+						'message'   => $e->getMessage(),
+					),
+				)
+			);
+		}
+	}
+
+	/**
+	 * Method to create a WC order from the data received from the ApplePay JS
+	 * On error returns an array of errors to be handled by the script
+	 * On success returns the new order data
+	 *
+	 * @throws \Exception When validation fails.
+	 */
+	public function create_wc_order(): void {
+		$applepay_request_data_object = $this->applepay_data_object_http();
+		//phpcs:disable WordPress.Security.NonceVerification
+
+		$context = wc_clean( wp_unslash( $_POST['caller_page'] ?? '' ) );
+		if ( ! is_string( $context ) ) {
+			$this->response_templates->response_with_data_errors(
+				array(
+					array(
+						'errorCode' => 'unableToProcess',
+						'message'   => 'Unable to process the order',
+					),
+				)
+			);
+			return;
+		}
+		$applepay_request_data_object->order_data( $context );
+
+		$this->update_posted_data( $applepay_request_data_object );
+		if ( $context === 'product' ) {
+			$cart_item_key = $this->prepare_cart( $applepay_request_data_object );
+			$cart          = WC()->cart;
+			$address       = $applepay_request_data_object->shipping_address();
+			$this->calculate_totals_single_product(
+				$cart,
+				$address,
+				$applepay_request_data_object->shipping_method()
+			);
+			if ( ! $cart_item_key ) {
+				$this->response_templates->response_with_data_errors(
+					array(
+						array(
+							'errorCode' => 'unableToProcess',
+							'message'   => 'Unable to process the order',
+						),
+					)
+				);
+				return;
+			}
+			add_filter(
+				'woocommerce_payment_successful_result',
+				function ( array $result ) use ( $cart, $cart_item_key ) : array {
+					if ( ! is_string( $cart_item_key ) ) {
+						return $result;
+					}
+					$this->clear_current_cart( $cart, $cart_item_key );
+					$this->reload_cart( $cart );
+					return $result;
+				}
+			);
+		}
+
+		WC()->checkout()->process_checkout();
+	}
+
+
+	/**
+	 * Checks if the nonce in the data object is valid
+	 *
+	 * @return bool|int
+	 */
+	protected function is_nonce_valid(): bool {
+		$nonce = filter_input( INPUT_POST, 'woocommerce-process-checkout-nonce', FILTER_SANITIZE_SPECIAL_CHARS );
+		if ( ! $nonce ) {
+			return false;
+		}
+		return wp_verify_nonce(
+			$nonce,
+			'woocommerce-process_checkout'
+		) === 1;
+	}
+
+	/**
+	 * Data Object to collect and validate all needed data collected
+	 * through HTTP
+	 */
+	protected function applepay_data_object_http(): ApplePayDataObjectHttp {
+		return new ApplePayDataObjectHttp( $this->logger );
+	}
+
+	/**
+	 * Returns a WC_Countries instance to check shipping
+	 *
+	 * @return \WC_Countries
+	 */
+	protected function create_wc_countries(): \WC_Countries {
+		return new \WC_Countries();
+	}
+
+	/**
+	 * Selector between product detail and cart page calculations
+	 *
+	 * @param ApplePayDataObjectHttp $applepay_request_data_object The data object.
+	 *
+	 * @return array|bool
+	 * @throws Exception If cannot be added to cart.
+	 */
+	protected function which_calculate_totals(
+		$applepay_request_data_object
+	) {
+		$address = empty( $applepay_request_data_object->shipping_address() ) ? $applepay_request_data_object->simplified_contact() : $applepay_request_data_object->shipping_address();
+		if ( $applepay_request_data_object->caller_page() === 'productDetail' ) {
+			$cart_item_key = $this->prepare_cart( $applepay_request_data_object );
+			$cart          = WC()->cart;
+
+			$totals = $this->calculate_totals_single_product(
+				$cart,
+				$address,
+				$applepay_request_data_object->shipping_method()
+			);
+			if ( is_string( $cart_item_key ) ) {
+				$this->clear_current_cart( $cart, $cart_item_key );
+				$this->reload_cart( $cart );
+			}
+			return $totals;
+		}
+		if ( $applepay_request_data_object->caller_page() === 'cart' ) {
+			return $this->calculate_totals_cart_page(
 				$address,
 				$applepay_request_data_object->shipping_method()
 			);

@@ -1,4 +1,117 @@
-request.
+<?php
+/**
+ * Handles the Webhook CHECKOUT.ORDER.APPROVED
+ *
+ * @package WooCommerce\PayPalCommerce\Webhooks\Handler
+ */
+
+declare(strict_types=1);
+
+namespace WooCommerce\PayPalCommerce\Webhooks\Handler;
+
+use WC_Checkout;
+use WC_Order;
+use WC_Session_Handler;
+use WooCommerce\PayPalCommerce\ApiClient\Endpoint\OrderEndpoint;
+use WooCommerce\PayPalCommerce\ApiClient\Entity\OrderStatus;
+use Psr\Log\LoggerInterface;
+use WooCommerce\PayPalCommerce\ApiClient\Exception\RuntimeException;
+use WooCommerce\PayPalCommerce\Session\MemoryWcSession;
+use WooCommerce\PayPalCommerce\Session\SessionHandler;
+use WooCommerce\PayPalCommerce\WcGateway\FundingSource\FundingSourceRenderer;
+use WooCommerce\PayPalCommerce\WcGateway\Gateway\OXXO\OXXOGateway;
+use WooCommerce\PayPalCommerce\WcGateway\Gateway\PayUponInvoice\PayUponInvoiceGateway;
+use WooCommerce\PayPalCommerce\WcGateway\Processor\OrderProcessor;
+
+/**
+ * Class CheckoutOrderApproved
+ */
+class CheckoutOrderApproved implements RequestHandler {
+
+	use RequestHandlerTrait;
+
+	/**
+	 * The logger.
+	 *
+	 * @var LoggerInterface
+	 */
+	private $logger;
+
+	/**
+	 * The order endpoint.
+	 *
+	 * @var OrderEndpoint
+	 */
+	private $order_endpoint;
+
+	/**
+	 * The Session handler.
+	 *
+	 * @var SessionHandler
+	 */
+	private $session_handler;
+
+	/**
+	 * The funding source renderer.
+	 *
+	 * @var FundingSourceRenderer
+	 */
+	protected $funding_source_renderer;
+
+	/**
+	 * The processor for orders.
+	 *
+	 * @var OrderProcessor
+	 */
+	protected $order_processor;
+
+	/**
+	 * CheckoutOrderApproved constructor.
+	 *
+	 * @param LoggerInterface       $logger The logger.
+	 * @param OrderEndpoint         $order_endpoint The order endpoint.
+	 * @param SessionHandler        $session_handler The session handler.
+	 * @param FundingSourceRenderer $funding_source_renderer The funding source renderer.
+	 * @param OrderProcessor        $order_processor The Order Processor.
+	 */
+	public function __construct(
+		LoggerInterface $logger,
+		OrderEndpoint $order_endpoint,
+		SessionHandler $session_handler,
+		FundingSourceRenderer $funding_source_renderer,
+		OrderProcessor $order_processor
+	) {
+		$this->logger                  = $logger;
+		$this->order_endpoint          = $order_endpoint;
+		$this->session_handler         = $session_handler;
+		$this->funding_source_renderer = $funding_source_renderer;
+		$this->order_processor         = $order_processor;
+	}
+
+	/**
+	 * The event types a handler handles.
+	 *
+	 * @return string[]
+	 */
+	public function event_types(): array {
+		return array(
+			'CHECKOUT.ORDER.APPROVED',
+		);
+	}
+
+	/**
+	 * Whether a handler is responsible for a given request or not.
+	 *
+	 * @param \WP_REST_Request $request The request.
+	 *
+	 * @return bool
+	 */
+	public function responsible_for_request( \WP_REST_Request $request ): bool {
+		return in_array( $request['event_type'], $this->event_types(), true );
+	}
+
+	/**
+	 * Responsible for handling the request.
 	 *
 	 * @param \WP_REST_Request $request The request.
 	 *

@@ -1,6 +1,6 @@
 header #thaps-search-button,
 header #thaps-search-button:hover {
-    background: green;
+    background: rgb(9, 179, 9);
 }
 
 .toggle-cat-wrap,
@@ -21,7 +21,7 @@ header #thaps-search-button:hover {
 .btn-main-header,
 .woocommerce div.product form.cart .button,
 .thunk-icon .cart-icon .taiowc-cart-item {
-    background: green;
+    background: rgb(9, 179, 9);
 }
 
 .menu-category-list span.arrow {
@@ -29,28 +29,30 @@ header #thaps-search-button:hover {
     right: 13px;
     width: 0px;
     text-align: center;
-    background: #eaeaea;
+    background: rgb(9, 179, 9);
 }
 
-.thunk-grid-view .thunk-product {
-  border: 1px solid transparent;
-  background: #fff;
-  min-height: 330px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+.woocommerce .thunk-woo-product-list .price,
+.woocommerce ul.products li.product.thunk-woo-product-list .price,
+.woocommerce .thunk-list-view ul.products li.product.thunk-woo-product-list .price {
+    color: rgb(9, 179, 9);
 }
 
-.thunk-grid-view .thunk-product .thunk-product-image {
-  display: block;
-  position: relative;
-  overflow: hidden;
-  margin: 5px;
-  border-radius: 4px 4px 0 0;
+.woocommerce ul.products .thunk-product-hover .add_to_cart_button,.woocommerce a.button.product_type_simple {
+    border-color: rgb(9, 179, 9);
 }
 
-.thunk-grid-view .thunk-product .woocommerce ul.products li.product a img,
-.thunk-grid-view .attachment-woocommerce_thumbnail.size-woocommerce_thumbnail {
-  height: 200px !important;
-  object-fit: contain;
+.woocommerce ul.products .thunk-product-hover .add_to_cart_button,.woocommerce a.button.product_type_simple{
+    color: rgb(9, 179, 9);
+}
+
+.thunk-list-grid-switcher a.selected{
+    border-color: rgb(9, 179, 9);
+}
+.thunk-list-grid-switcher a.selected{
+    background-color:rgb(9, 179, 9);
+}
+.woocommerce ul.products li.product a img{
+    max-width: 400px;
+    max-height: 400px;
 }

@@ -884,7 +884,7 @@ const ComplementaryAreaHeader = ({
   });
   return (0,external_React_namespaceObject.createElement)(external_React_namespaceObject.Fragment, null, (0,external_React_namespaceObject.createElement)("div", {
     className: "components-panel__header interface-complementary-area-header__small"
-  }, smallScreenTitle && (0,external_React_namespaceObject.createElement)("span", {
+  }, smallScreenTitle && (0,external_React_namespaceObject.createElement)("h2", {
     className: "interface-complementary-area-header__small-title"
   }, smallScreenTitle), toggleButton), (0,external_React_namespaceObject.createElement)("div", {
     className: classnames_default()('components-panel__header', 'interface-complementary-area-header', className),
@@ -1227,7 +1227,9 @@ function ComplementaryArea({
       scope,
       identifier
     }
-  }, header || (0,external_React_namespaceObject.createElement)(external_React_namespaceObject.Fragment, null, (0,external_React_namespaceObject.createElement)("strong", null, title), isPinnable && (0,external_React_namespaceObject.createElement)(external_wp_components_namespaceObject.Button, {
+  }, header || (0,external_React_namespaceObject.createElement)(external_React_namespaceObject.Fragment, null, (0,external_React_namespaceObject.createElement)("h2", {
+    className: "interface-complementary-area-header__title"
+  }, title), isPinnable && (0,external_React_namespaceObject.createElement)(external_wp_components_namespaceObject.Button, {
     className: "interface-complementary-area__pin-unpin-item",
     icon: isPinned ? star_filled : star_empty,
     label: isPinned ? (0,external_wp_i18n_namespaceObject.__)('Unpin from toolbar') : (0,external_wp_i18n_namespaceObject.__)('Pin to toolbar'),
@@ -1396,62 +1398,7 @@ function InterfaceSkeleton({
 }
 /* harmony default export */ const interface_skeleton = ((0,external_wp_element_namespaceObject.forwardRef)(InterfaceSkeleton));
 
-;// CONCATENATED MODULE: ./packages/icons/build-module/library/more-vertical.js
-
-/**
- * WordPress dependencies
- */
-
-const moreVertical = (0,external_React_namespaceObject.createElement)(external_wp_primitives_namespaceObject.SVG, {
-  xmlns: "http://www.w3.org/2000/svg",
-  viewBox: "0 0 24 24"
-}, (0,external_React_namespaceObject.createElement)(external_wp_primitives_namespaceObject.Path, {
-  d: "M13 19h-2v-2h2v2zm0-6h-2v-2h2v2zm0-6h-2V5h2v2z"
-}));
-/* harmony default export */ const more_vertical = (moreVertical);
-
-;// CONCATENATED MODULE: ./packages/interface/build-module/components/more-menu-dropdown/index.js
-
-/**
- * External dependencies
- */
-
-
-/**
- * WordPress dependencies
- */
-
-
-
-function MoreMenuDropdown({
-  as: DropdownComponent = external_wp_components_namespaceObject.DropdownMenu,
-  className,
-  /* translators: button label text should, if possible, be under 16 characters. */
-  label = (0,external_wp_i18n_namespaceObject.__)('Options'),
-  popoverProps,
-  toggleProps,
-  children
-}) {
-  return (0,external_React_namespaceObject.createElement)(DropdownComponent, {
-    className: classnames_default()('interface-more-menu-dropdown', className),
-    icon: more_vertical,
-    label: label,
-    popoverProps: {
-      placement: 'bottom-end',
-      ...popoverProps,
-      className: classnames_default()('interface-more-menu-dropdown__content', popoverProps?.className)
-    },
-    toggleProps: {
-      tooltipPosition: 'bottom',
-      ...toggleProps,
-      size: 'compact'
-    }
-  }, onClose => children(onClose));
-}
-
 ;// CONCATENATED MODULE: ./packages/interface/build-module/components/index.js
-
-
 
 
 
@@ -3454,7 +3401,8 @@ function UndoButton(props, ref) {
     // See: https://github.com/WordPress/gutenberg/issues/3486
     ,
     "aria-disabled": !hasUndo,
-    onClick: hasUndo ? undo : undefined
+    onClick: hasUndo ? undo : undefined,
+    size: "compact"
   });
 }
 /* harmony default export */ const undo_redo_undo = ((0,external_wp_element_namespaceObject.forwardRef)(UndoButton));
@@ -3488,7 +3436,8 @@ function RedoButton(props, ref) {
     // See: https://github.com/WordPress/gutenberg/issues/3486
     ,
     "aria-disabled": !hasRedo,
-    onClick: hasRedo ? redo : undefined
+    onClick: hasRedo ? redo : undefined,
+    size: "compact"
   });
 }
 /* harmony default export */ const undo_redo_redo = ((0,external_wp_element_namespaceObject.forwardRef)(RedoButton));
@@ -3515,7 +3464,7 @@ function RedoButton(props, ref) {
 
 
 const {
-  useCanBlockToolbarBeFocused
+  useShowBlockTools
 } = unlock(external_wp_blockEditor_namespaceObject.privateApis);
 function DocumentTools() {
   const isMediumViewport = (0,external_wp_compose_namespaceObject.useViewportMatch)('medium');
@@ -3568,11 +3517,13 @@ function DocumentTools() {
   const toggleListView = (0,external_wp_element_namespaceObject.useCallback)(() => setIsListViewOpened(!isListViewOpen), [setIsListViewOpened, isListViewOpen]);
 
   // If there's a block toolbar to be focused, disable the focus shortcut for the document toolbar.
-  const blockToolbarCanBeFocused = useCanBlockToolbarBeFocused();
+  const {
+    showFixedToolbar
+  } = useShowBlockTools();
   return (0,external_React_namespaceObject.createElement)(external_wp_blockEditor_namespaceObject.NavigableToolbar, {
     className: "edit-widgets-header-toolbar",
     "aria-label": (0,external_wp_i18n_namespaceObject.__)('Document tools'),
-    shouldUseKeyboardFocusShortcut: !blockToolbarCanBeFocused,
+    shouldUseKeyboardFocusShortcut: !showFixedToolbar,
     variant: "unstyled"
   }, (0,external_React_namespaceObject.createElement)(external_wp_components_namespaceObject.ToolbarItem, {
     ref: inserterButton,
@@ -3587,7 +3538,8 @@ function DocumentTools() {
     icon: library_plus
     /* translators: button label text should, if possible, be under 16
     	characters. */,
-    label: (0,external_wp_i18n_namespaceObject._x)('Toggle block inserter', 'Generic label for block inserter button')
+    label: (0,external_wp_i18n_namespaceObject._x)('Toggle block inserter', 'Generic label for block inserter button'),
+    size: "compact"
   }), isMediumViewport && (0,external_React_namespaceObject.createElement)(external_React_namespaceObject.Fragment, null, (0,external_React_namespaceObject.createElement)(external_wp_components_namespaceObject.ToolbarItem, {
     as: undo_redo_undo
   }), (0,external_React_namespaceObject.createElement)(external_wp_components_namespaceObject.ToolbarItem, {
@@ -3600,7 +3552,8 @@ function DocumentTools() {
     /* translators: button label text should, if possible, be under 16 characters. */,
     label: (0,external_wp_i18n_namespaceObject.__)('List View'),
     onClick: toggleListView,
-    ref: listViewToggleRef
+    ref: listViewToggleRef,
+    size: "compact"
   })));
 }
 /* harmony default export */ const document_tools = (DocumentTools);
@@ -3640,10 +3593,25 @@ function SaveButton() {
     variant: "primary",
     isBusy: isSaving,
     "aria-disabled": isDisabled,
-    onClick: isDisabled ? undefined : saveEditedWidgetAreas
+    onClick: isDisabled ? undefined : saveEditedWidgetAreas,
+    size: "compact"
   }, isSaving ? (0,external_wp_i18n_namespaceObject.__)('Saving…') : (0,external_wp_i18n_namespaceObject.__)('Update'));
 }
 /* harmony default export */ const save_button = (SaveButton);
+
+;// CONCATENATED MODULE: ./packages/icons/build-module/library/more-vertical.js
+
+/**
+ * WordPress dependencies
+ */
+
+const moreVertical = (0,external_React_namespaceObject.createElement)(external_wp_primitives_namespaceObject.SVG, {
+  xmlns: "http://www.w3.org/2000/svg",
+  viewBox: "0 0 24 24"
+}, (0,external_React_namespaceObject.createElement)(external_wp_primitives_namespaceObject.Path, {
+  d: "M13 19h-2v-2h2v2zm0-6h-2v-2h2v2zm0-6h-2V5h2v2z"
+}));
+/* harmony default export */ const more_vertical = (moreVertical);
 
 ;// CONCATENATED MODULE: ./packages/icons/build-module/library/external.js
 
@@ -3953,7 +3921,6 @@ ToolsMoreMenuGroup.Slot = ({
 
 
 
-
 /**
  * Internal dependencies
  */
@@ -3964,7 +3931,18 @@ function MoreMenu() {
   const toggleKeyboardShortcutsModal = () => setIsKeyboardShortcutsModalVisible(!isKeyboardShortcutsModalActive);
   (0,external_wp_keyboardShortcuts_namespaceObject.useShortcut)('core/edit-widgets/keyboard-shortcuts', toggleKeyboardShortcutsModal);
   const isLargeViewport = (0,external_wp_compose_namespaceObject.useViewportMatch)('medium');
-  return (0,external_React_namespaceObject.createElement)(external_React_namespaceObject.Fragment, null, (0,external_React_namespaceObject.createElement)(MoreMenuDropdown, null, onClose => (0,external_React_namespaceObject.createElement)(external_React_namespaceObject.Fragment, null, isLargeViewport && (0,external_React_namespaceObject.createElement)(external_wp_components_namespaceObject.MenuGroup, {
+  return (0,external_React_namespaceObject.createElement)(external_React_namespaceObject.Fragment, null, (0,external_React_namespaceObject.createElement)(external_wp_components_namespaceObject.DropdownMenu, {
+    icon: more_vertical,
+    label: (0,external_wp_i18n_namespaceObject.__)('Options'),
+    popoverProps: {
+      placement: 'bottom-end',
+      className: 'more-menu-dropdown__content'
+    },
+    toggleProps: {
+      tooltipPosition: 'bottom',
+      size: 'compact'
+    }
+  }, onClose => (0,external_React_namespaceObject.createElement)(external_React_namespaceObject.Fragment, null, isLargeViewport && (0,external_React_namespaceObject.createElement)(external_wp_components_namespaceObject.MenuGroup, {
     label: (0,external_wp_i18n_namespaceObject._x)('View', 'noun')
   }, (0,external_React_namespaceObject.createElement)(external_wp_preferences_namespaceObject.PreferenceToggleMenuItem, {
     scope: "core/edit-widgets",

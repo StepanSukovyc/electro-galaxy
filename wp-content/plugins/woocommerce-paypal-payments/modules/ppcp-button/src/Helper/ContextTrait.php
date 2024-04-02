@@ -1,4 +1,125 @@
-_block( 'woocommerce/checkout' ) ) {
+<?php
+/**
+ * Helper trait for context.
+ *
+ * @package WooCommerce\PayPalCommerce\Button\Helper
+ */
+
+declare(strict_types=1);
+
+namespace WooCommerce\PayPalCommerce\Button\Helper;
+
+use WooCommerce\PayPalCommerce\ApiClient\Entity\OrderStatus;
+
+trait ContextTrait {
+	/**
+	 * Initializes context preconditions like is_cart() and is_checkout().
+	 *
+	 * @return void
+	 */
+	protected function init_context(): void {
+		if ( ! apply_filters( 'woocommerce_paypal_payments_block_classic_compat', true ) ) {
+			return;
+		}
+
+		/**
+		 * Activate is_checkout() on woocommerce/classic-shortcode checkout blocks.
+		 *
+		 * @psalm-suppress MissingClosureParamType
+		 */
+		add_filter(
+			'woocommerce_is_checkout',
+			function ( $is_checkout ) {
+				if ( $is_checkout ) {
+					return $is_checkout;
+				}
+				return has_block( 'woocommerce/classic-shortcode {"shortcode":"checkout"}' );
+			}
+		);
+
+		// Activate is_cart() on woocommerce/classic-shortcode cart blocks.
+		if ( ! is_cart() && is_callable( 'wc_maybe_define_constant' ) ) {
+			if ( has_block( 'woocommerce/classic-shortcode' ) && ! has_block( 'woocommerce/classic-shortcode {"shortcode":"checkout"}' ) ) {
+				wc_maybe_define_constant( 'WOOCOMMERCE_CART', true );
+			}
+		}
+	}
+
+	/**
+	 * Checks WC is_checkout() + WC checkout ajax requests.
+	 */
+	private function is_checkout(): bool {
+		if ( is_checkout() ) {
+			return true;
+		}
+
+		/**
+		 * The filter returning whether to detect WC checkout ajax requests.
+		 */
+		if ( apply_filters( 'ppcp_check_ajax_checkout', true ) ) {
+			// phpcs:ignore WordPress.Security
+			$wc_ajax = $_GET['wc-ajax'] ?? '';
+			if ( in_array( $wc_ajax, array( 'update_order_review' ), true ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Checks WC is_cart() + WC cart ajax requests.
+	 */
+	private function is_cart(): bool {
+		if ( is_cart() ) {
+			return true;
+		}
+
+		/**
+		 * The filter returning whether to detect WC cart ajax requests.
+		 */
+		if ( apply_filters( 'ppcp_check_ajax_cart', true ) ) {
+			// phpcs:ignore WordPress.Security
+			$wc_ajax = $_GET['wc-ajax'] ?? '';
+			if ( in_array( $wc_ajax, array( 'update_shipping_method' ), true ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * The current context.
+	 *
+	 * @return string
+	 */
+	protected function context(): string {
+		if ( is_product() || wc_post_content_has_shortcode( 'product_page' ) ) {
+
+			// Do this check here instead of reordering outside conditions.
+			// In order to have more control over the context.
+			if ( $this->is_checkout() && ! $this->is_paypal_continuation() ) {
+				return 'checkout';
+			}
+
+			return 'product';
+		}
+
+		// has_block may not work if called too early, such as during the block registration.
+		if ( has_block( 'woocommerce/cart' ) ) {
+			return 'cart-block';
+		}
+
+		if ( $this->is_cart() ) {
+			return 'cart';
+		}
+
+		if ( is_checkout_pay_page() ) {
+			return 'pay-now';
+		}
+
+		if ( has_block( 'woocommerce/checkout' ) ) {
 			return 'checkout-block';
 		}
 
