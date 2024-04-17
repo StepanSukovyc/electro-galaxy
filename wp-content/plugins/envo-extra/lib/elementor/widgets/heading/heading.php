@@ -553,7 +553,7 @@ class Heading extends Widget_Base {
 		?>
 
 		<div class="envo-extra-heading-wrapper envo-extra-simple-heading-wrapper">
-			<?php echo $this->render_title() // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+			<?php echo wp_kses_post($this->render_title()); ?>
 		</div>
 		<?php
 	}
